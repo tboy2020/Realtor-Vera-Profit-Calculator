@@ -325,6 +325,57 @@ function renderOverview(){
     +'<div class="stat"><div class="sn">'+fmtK(curYearRedOne)+' / '+fmtK(CFG.capLimit)+'</div><div class="sl">RedOne Cap</div></div>'
     +'</div>';
 
+  // mentoring progress tracker
+  if(CFG.inMentoring){
+    var mentDeals=CFG.dealsCompleted;
+    var mentPct=mentDeals<6?20:10;
+    var dealsToDropMent=Math.max(0,6-mentDeals);
+    // estimate savings when mentoring drops to 10%
+    var savingsPerDeal=avgGross>0?avgGross*0.10:0;
+    var mentBarPct=Math.min(100,Math.round(mentDeals/6*100));
+    var mentColor=mentDeals>=6?"#2e7d32":"#e65100";
+    html+='<div class="section">👩‍🏫 Mentoring Progress</div>';
+    html+='<div class="box mb10">';
+    if(mentDeals>=6){
+      html+='<div style="background:#e8f5e9;border-radius:10px;padding:14px;text-align:center">'
+        +'<div style="font-size:22px">🎉</div>'
+        +'<div style="font-size:15px;font-weight:700;color:#2e7d32;margin-top:6px">Mentoring Rate Dropped to 10%!</div>'
+        +'<div style="font-size:12px;color:var(--muted);margin-top:4px">6 deals completed — Vera keeps an extra 10% on every deal from here on.</div>'
+        +(savingsPerDeal>0?'<div style="font-size:14px;font-weight:700;color:#2e7d32;margin-top:6px">+'+fmt(savingsPerDeal)+' extra per deal</div>':"")
+        +'</div>';
+    } else {
+      html+='<div class="rowsb mb10" style="align-items:flex-start">'
+        +'<div>'
+        +'<div style="font-size:14px;font-weight:700">Mentoring: <span style="color:#e65100">20%</span> per deal</div>'
+        +'<div style="font-size:12px;color:var(--muted);margin-top:2px">Drops to <strong>10%</strong> after deal 6</div>'
+        +'</div>'
+        +'<div style="text-align:right">'
+        +'<div style="font-size:22px;font-weight:700;color:#e65100">'+mentDeals+' / 6</div>'
+        +'<div style="font-size:10px;color:var(--muted)">deals done</div>'
+        +'</div>'
+        +'</div>'
+        // progress bar with deal markers
+        +'<div style="position:relative;margin-bottom:8px">'
+        +'<div style="height:14px;background:#f0ebe0;border-radius:7px;overflow:hidden">'
+        +'<div style="height:14px;background:linear-gradient(90deg,#ffcc80,#e65100);border-radius:7px;width:'+mentBarPct+'%;transition:width .3s"></div>'
+        +'</div>'
+        // deal tick marks
+        +'<div style="display:flex;justify-content:space-between;margin-top:4px">'
+        +[1,2,3,4,5,6].map(function(n){
+          var done=n<=mentDeals;
+          return'<div style="text-align:center;width:14%">'
+            +'<div style="width:20px;height:20px;border-radius:50%;background:'+(done?'#e65100':'#f0ebe0')+';border:2px solid '+(done?'#e65100':'#d8d0c0')+';display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:9px;font-weight:700;color:'+(done?'#fff':'#bbb')+'">'+(done?'✓':n)+'</div>'
+            +'</div>';
+        }).join("")
+        +'</div></div>'
+        +'<div style="background:#fff8e8;border-radius:10px;padding:12px;margin-top:4px">'
+        +'<div style="font-size:13px;font-weight:700;color:#e65100;margin-bottom:4px">'+dealsToDropMent+' more deal'+(dealsToDropMent!==1?'s':'')+' until 10% mentoring rate!</div>'
+        +(savingsPerDeal>0?'<div style="font-size:12px;color:var(--muted)">Once there, Vera keeps an extra <strong>'+fmt(savingsPerDeal)+'</strong> on every future deal.</div>':"")
+        +'</div>';
+    }
+    html+='</div>';
+  }
+
   // cap progress
   html+='<div class="box mb10">'
     +'<div class="rowsb mb6"><div style="font-size:13px;font-weight:600">RedOne Cap Progress</div>'
@@ -504,78 +555,101 @@ function dealRow(d,compact){
 function openAddDeal(){
   DEAL_OPEN=true;DEAL_EDITING=null;
   ND={client:"",clientCustom:"",type:"newbuild",builder:"",builderCustom:"",referral:"",price:"",commRate:"",closeDate:todayStr(),notes:""};
-  if(ACTIVE==="overview")renderOverview();
-  else if(ACTIVE==="deals")renderDeals();
-  // scroll to form
-  setTimeout(function(){var f=document.getElementById("deal-add-form");if(f)f.scrollIntoView({behavior:"smooth",block:"start"});},100);
+  renderAddFormInPanel();
 }
 
-function renderAddForm(panelId){
-  var el=document.getElementById("deal-add-form");
-  if(!el){
-    var wrap=document.createElement("div");
-    wrap.id="deal-add-form";
-    document.getElementById(panelId).prepend(wrap);
-    el=wrap;
-  }
+function renderAddFormInPanel(){
+  // remove any existing form first
+  var existing=document.getElementById("deal-add-form");
+  if(existing)existing.parentNode.removeChild(existing);
+
+  var targetId=ACTIVE==="overview"?"poverview":ACTIVE==="deals"?"pdeals":"poverview";
+  var target=document.getElementById(targetId);
+  if(!target)return;
+
+  var wrap=document.createElement("div");
+  wrap.id="deal-add-form";
+  wrap.style.marginBottom="14px";
+  target.insertBefore(wrap,target.firstChild);
+
   var dt=dtypeMeta(ND.type);
   var isNewBuild=ND.type==="newbuild";
+
   var clientOpts='<option value="">-- Pick existing client --</option>'
     +CFG.clients.map(function(c){return'<option value="'+esc(c)+'"'+(ND.client===c?" selected":"")+'>'+esc(c)+'</option>';}).join("")
     +'<option value="__custom__"'+(ND.client==="__custom__"?" selected":"")+'>+ Type new name</option>';
+
   var builderOpts='<option value="">-- Pick builder --</option>'
     +CFG.builders.map(function(b){return'<option value="'+esc(b)+'"'+(ND.builder===b?" selected":"")+'>'+esc(b)+'</option>';}).join("")
     +'<option value="__custom__"'+(ND.builder==="__custom__"?" selected":"")+'>+ Type new name</option>';
-  var typeButtons=DTYPES.map(function(t){return'<button class="dtype-btn'+(ND.type===t.id?" on":"")+'" onclick="setND(\'type\',\''+t.id+'\')">'+t.label+'</button>';}).join("");
 
-  el.innerHTML='<div class="box hi mb10" style="border-color:var(--gold)">'
-    +'<div class="rowsb mb14"><div style="font-size:15px;font-weight:700;color:var(--gold)">📝 Record Closed Deal</div><button class="xbtn" onclick="DEAL_OPEN=false;re()">&#10005;</button></div>'
+  var typeButtons=DTYPES.map(function(t){
+    return'<button class="dtype-btn'+(ND.type===t.id?" on":"")+'" onclick="ND.type=\''+t.id+'\';renderAddFormInPanel()">'+t.label+'</button>';
+  }).join("");
+
+  wrap.innerHTML='<div class="box hi" style="border-color:var(--gold)">'
+    +'<div class="rowsb mb14">'
+    +'<div style="font-size:15px;font-weight:700;color:var(--gold)">📝 Record Closed Deal</div>'
+    +'<button class="xbtn" onclick="DEAL_OPEN=false;var f=document.getElementById(\'deal-add-form\');if(f)f.parentNode.removeChild(f)">&#10005;</button>'
+    +'</div>'
 
     +'<div class="field"><div class="lbl">Deal Type</div><div class="dtype-row">'+typeButtons+'</div></div>'
 
     +'<div class="field"><div class="lbl">Client</div>'
-    +'<select class="inp mb8" onchange="setND(\'client\',this.value)">'+clientOpts+'</select>'
-    +(ND.client==="__custom__"?'<input class="inp" placeholder="Type client name" value="'+esc(ND.clientCustom)+'" oninput="ND.clientCustom=this.value"/>':"")
+    +'<select class="inp mb8" onchange="ND.client=this.value;renderAddFormInPanel()">'+clientOpts+'</select>'
+    +(ND.client==="__custom__"?'<input class="inp" id="nd-client-custom" placeholder="Type client name" value="'+esc(ND.clientCustom)+'" oninput="ND.clientCustom=this.value"/>':"")
     +'</div>'
 
     +(isNewBuild
       ?'<div class="field"><div class="lbl">Builder</div>'
-       +'<select class="inp mb8" onchange="setND(\'builder\',this.value)">'+builderOpts+'</select>'
-       +(ND.builder==="__custom__"?'<input class="inp" placeholder="Type builder name" value="'+esc(ND.builderCustom)+'" oninput="ND.builderCustom=this.value"/>':"")
+       +'<select class="inp mb8" onchange="ND.builder=this.value;renderAddFormInPanel()">'+builderOpts+'</select>'
+       +(ND.builder==="__custom__"?'<input class="inp" id="nd-builder-custom" placeholder="Type builder name" value="'+esc(ND.builderCustom)+'" oninput="ND.builderCustom=this.value"/>':"")
        +'</div>'
       :'<div class="field"><div class="lbl">Agent / Referral Source (optional)</div>'
        +'<input class="inp" placeholder="e.g. John Smith Realty" value="'+esc(ND.referral)+'" oninput="ND.referral=this.value"/>'
        +'</div>')
 
     +'<div class="g2">'
-    +'<div class="field"><div class="lbl">Sale Price ($)</div><input class="inp" type="number" placeholder="e.g. 280000" value="'+esc(ND.price)+'" oninput="ND.price=this.value" inputmode="numeric"/></div>'
-    +'<div class="field"><div class="lbl">Commission Rate (%)</div><input class="inp" type="number" placeholder="Default '+CFG.commRate+'%" value="'+esc(ND.commRate)+'" oninput="ND.commRate=this.value" step="0.25"/></div>'
+    +'<div class="field"><div class="lbl">Sale Price ($)</div>'
+    +'<input class="inp" type="number" inputmode="numeric" placeholder="e.g. 280000" value="'+esc(ND.price)+'" oninput="ND.price=this.value"/>'
+    +'</div>'
+    +'<div class="field"><div class="lbl">Commission Rate % (default '+CFG.commRate+'%)</div>'
+    +'<input class="inp" type="number" step="0.25" placeholder="'+CFG.commRate+'" value="'+esc(ND.commRate)+'" oninput="ND.commRate=this.value"/>'
+    +'</div></div>'
+
+    +'<div class="field"><div class="lbl">Close Date</div>'
+    +'<input class="inp" type="date" value="'+esc(ND.closeDate)+'" oninput="ND.closeDate=this.value"/>'
     +'</div>'
 
-    +'<div class="field"><div class="lbl">Close Date</div><input class="inp" type="date" value="'+esc(ND.closeDate)+'" oninput="ND.closeDate=this.value"/></div>'
+    +'<div class="field"><div class="lbl">Notes (optional)</div>'
+    +'<textarea class="inp" rows="2" placeholder="Any notes..." oninput="ND.notes=this.value">'+esc(ND.notes)+'</textarea>'
+    +'</div>'
 
-    +'<div class="field"><div class="lbl">Notes (optional)</div><textarea class="inp" rows="2" placeholder="Any notes about this deal..." oninput="ND.notes=this.value">'+esc(ND.notes)+'</textarea></div>'
-
-    +'<div class="row"><button class="gbtn" onclick="saveDeal()">Save Deal</button><button class="sbtn" onclick="DEAL_OPEN=false;re()">Cancel</button></div>'
+    +'<div class="row">'
+    +'<button class="gbtn" onclick="saveDeal()">Save Deal ✓</button>'
+    +'<button class="sbtn" onclick="DEAL_OPEN=false;var f=document.getElementById(\'deal-add-form\');if(f)f.parentNode.removeChild(f)">Cancel</button>'
+    +'</div>'
     +'</div>';
+
+  wrap.scrollIntoView({behavior:"smooth",block:"start"});
 }
 
 function setND(key,val){
   ND[key]=val;
-  if(ACTIVE==="overview")renderOverview();
-  else if(ACTIVE==="deals")renderDeals();
+  renderAddFormInPanel();
 }
 
 function re(){
   if(ACTIVE==="overview")renderOverview();
   else if(ACTIVE==="deals")renderDeals();
   else if(ACTIVE==="byyear")renderByYear();
+  else if(ACTIVE==="projection")renderProjection();
 }
 
 function saveDeal(){
-  var client=ND.client==="__custom__"?ND.clientCustom.trim():ND.client;
+  var client=ND.client==="__custom__"?ND.clientCustom.trim():(ND.client||"").trim();
   if(!client){toast("Please enter a client name");return;}
-  var price=parseFloat(ND.price);
+  var price=parseFloat((ND.price||"").replace(/[^0-9.]/g,""));
   if(!price||price<=0){toast("Please enter a valid sale price");return;}
   if(!ND.closeDate){toast("Please select a close date");return;}
   var builder=ND.type==="newbuild"?(ND.builder==="__custom__"?ND.builderCustom.trim():ND.builder):"";
@@ -584,21 +658,22 @@ function saveDeal(){
     client:client,
     type:ND.type,
     builder:builder,
-    referral:ND.referral,
+    referral:ND.referral||"",
     price:price,
     commRate:ND.commRate||CFG.commRate,
     closeDate:ND.closeDate,
-    notes:ND.notes,
+    notes:ND.notes||"",
     gross:0,redOne:0,mentoring:0,vera:0
   };
   DEALS.push(deal);
-  CFG.dealsCompleted++;
+  CFG.dealsCompleted=DEALS.length;
   DEAL_OPEN=false;
-  save();recalcAll();
-  toast("Deal saved! 🎉");
-  if(ACTIVE==="overview")renderOverview();
-  else if(ACTIVE==="deals")renderDeals();
-  else if(ACTIVE==="byyear")renderByYear();
+  // remove form
+  var f=document.getElementById("deal-add-form");
+  if(f)f.parentNode.removeChild(f);
+  recalcAll();save();
+  toast("Deal saved! "+esc(client)+" 🎉");
+  re();
 }
 
 function deleteDeal(id){
@@ -628,7 +703,11 @@ function renderSettings(){
     +'<button class="sbtn'+(CFG.inMentoring?" on":"")+'" onclick="CFG.inMentoring=true;save();renderSettings()">Yes</button>'
     +'<button class="sbtn'+(!CFG.inMentoring?" on":"")+'" onclick="CFG.inMentoring=false;save();renderSettings()">No</button>'
     +'</div></div>'
-    +settingRow("Deals Completed So Far","s-deals",CFG.dealsCompleted,"CFG.dealsCompleted=parseInt(this.value)||0")
+    +'<div style="padding:10px 0;border-bottom:1px solid var(--bdr)">'
+    +'<div class="lbl">Deals Completed (auto-counted)</div>'
+    +'<div style="font-size:20px;font-weight:700;color:var(--gold);margin-top:6px">'+CFG.dealsCompleted+' deals</div>'
+    +'<div style="font-size:11px;color:var(--muted);margin-top:2px">Automatically tracked from your recorded deals</div>'
+    +'</div>'
     +'</div>';
 
   // projection settings
@@ -873,6 +952,39 @@ function renderProjection(){
     +'<div style="text-align:center;background:#f5f2ec;border-radius:8px;padding:8px"><div style="font-size:16px;font-weight:700;color:var(--gold)">'+fmt(goalRemaining)+'</div><div style="font-size:10px;color:var(--muted)">Remaining</div></div>'
     +'<div style="text-align:center;background:'+(onTrack?'#e8f5e9':'#fff8e8')+';border-radius:8px;padding:8px"><div style="font-size:14px;font-weight:700;color:'+(onTrack?'#2e7d32':'#e65100')+'">'+(onTrack?'✅ On Track':'⚡ Push More')+'</div><div style="font-size:10px;color:var(--muted)">'+dealsNeededForGoal+' more deals</div></div>'
     +'</div></div>';
+
+  // mentoring projection
+  var mentDealsNow=CFG.dealsCompleted;
+  var dealsToMentDrop=Math.max(0,6-mentDealsNow);
+  var daysToDrop=dealsPerDay>0&&dealsToMentDrop>0?Math.round(dealsToMentDrop/dealsPerDay):0;
+  var mentDropDate=new Date(today);mentDropDate.setDate(today.getDate()+daysToDrop);
+  var mentSavingsPerDeal=avgGross*0.10;
+
+  if(CFG.inMentoring){
+    html+='<div class="box mb10">';
+    if(mentDealsNow>=6){
+      html+='<div style="background:#e8f5e9;border-radius:10px;padding:14px;text-align:center">'
+        +'<div style="font-size:14px;font-weight:700;color:#2e7d32">👩‍🏫 Mentoring already at 10%!</div>'
+        +'<div style="font-size:12px;color:var(--muted);margin-top:4px">Vera keeps an extra '+fmt(mentSavingsPerDeal)+' per deal vs when she started.</div>'
+        +'</div>';
+    } else {
+      html+='<div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:8px">👩‍🏫 Mentoring Rate Projection</div>'
+        +'<div style="background:#fff8e8;border-radius:10px;padding:12px">'
+        +'<div style="font-size:13px;margin-bottom:6px">At current pace, mentoring drops from <strong style="color:#e65100">20%</strong> to <strong style="color:#2e7d32">10%</strong> in:</div>'
+        +'<div style="font-size:22px;font-weight:700;color:#e65100;margin-bottom:4px">'+dealsToMentDrop+' more deal'+(dealsToMentDrop!==1?'s':'')+'</div>'
+        +'<div style="font-size:12px;color:var(--muted)">Est. date: '+fmtDate(mentDropDate.toISOString().split("T")[0])+'</div>'
+        +(mentSavingsPerDeal>0?'<div style="font-size:12px;color:#2e7d32;margin-top:6px;font-weight:600">After that: +'+fmt(mentSavingsPerDeal)+' extra per deal goes to Vera 🎉</div>':"")
+        +'<div style="display:flex;gap:4px;margin-top:10px">'
+        +[1,2,3,4,5,6].map(function(n){
+          var done=n<=mentDealsNow;
+          return'<div style="flex:1;height:8px;border-radius:4px;background:'+(done?'#e65100':'#f0ebe0')+'"></div>';
+        }).join("")
+        +'</div>'
+        +'<div style="font-size:11px;color:var(--muted);margin-top:4px;text-align:center">'+mentDealsNow+' of 6 deals done</div>'
+        +'</div>';
+    }
+    html+='</div>';
+  }
 
   /* ── PROFIT TIMELINE ── */
   html+='<div class="section">📅 Profit Timeline — Ascending by Date</div>';
