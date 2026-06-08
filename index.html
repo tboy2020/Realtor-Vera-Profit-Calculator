@@ -131,14 +131,16 @@ textarea.inp{resize:vertical}
   <button class="tab on" onclick="go('overview',this)">📊 Overview</button>
   <button class="tab" onclick="go('deals',this)">🗂️ All Deals</button>
   <button class="tab" onclick="go('byyear',this)">📆 By Year</button>
+  <button class="tab" onclick="go('projection',this)">📈 Projection</button>
   <button class="tab" onclick="go('settings',this)">⚙️ Settings</button>
 </div>
 
 <div id="body">
-  <div id="poverview" class="panel on"></div>
-  <div id="pdeals"    class="panel"></div>
-  <div id="pbyyear"   class="panel"></div>
-  <div id="psettings" class="panel"></div>
+  <div id="poverview"  class="panel on"></div>
+  <div id="pdeals"     class="panel"></div>
+  <div id="pbyyear"    class="panel"></div>
+  <div id="pprojection"class="panel"></div>
+  <div id="psettings"  class="panel"></div>
 </div>
 
 <div id="toast"></div>
@@ -156,7 +158,7 @@ function getCapYear(ds){var d=ds?new Date(ds+"T12:00:00"):new Date();var y=d.get
 function toast(msg){var t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(function(){t.classList.remove("show");},2800);}
 function chip(color,lbl){return'<span class="chip" style="background:'+color+'22;color:'+color+'">'+esc(lbl)+'</span>';}
 
-var ACTIVE="overview";
+var PANEL_IDS={overview:"poverview",deals:"pdeals",byyear:"pbyyear",projection:"pprojection",settings:"psettings"};
 function go(id,btn){
   document.querySelectorAll(".panel").forEach(function(p){p.classList.remove("on");});
   document.querySelectorAll(".tab").forEach(function(t){t.classList.remove("on");});
@@ -185,6 +187,17 @@ var CFG={
   ment2Pct:10,
   inMentoring:true,
   dealsCompleted:0,
+  businessStartDate:"2026-04-26",
+  annualIncomeGoal:100000,
+  paceWindow:"all",
+  scriptures:[
+    {ref:"1 Thessalonians 5:24", text:"Faithful is he that calleth you, who also will do it."},
+    {ref:"Romans 9:16",          text:"So then it is not of him that willeth, nor of him that runneth, but of God that sheweth mercy."},
+    {ref:"Proverbs 21:31",       text:"The horse is prepared against the day of battle: but safety is of the LORD."},
+    {ref:"Isaiah 45:2",          text:"I will go before thee, and make the crooked places straight."},
+    {ref:"Proverbs 10:22",       text:"The blessing of the LORD, it maketh rich, and he addeth no sorrow with it."},
+    {ref:"Proverbs 12:2",        text:"A good man obtaineth favour of the LORD."}
+  ],
   clients:["Suzel & Husband","Si Zahara","Lucy","Zion","Michael (Dr. Horton)","Pastor Lanre"],
   builders:["Maronda Homes","Rockford Homes","Fisher's Homes","Dr. Horton","Ryan Homes","M/I Homes"]
 };
@@ -618,22 +631,59 @@ function renderSettings(){
     +settingRow("Deals Completed So Far","s-deals",CFG.dealsCompleted,"CFG.dealsCompleted=parseInt(this.value)||0")
     +'</div>';
 
+  // projection settings
+  html+='<div class="box mb10">'
+    +'<div class="section" style="margin-top:0">Projection Settings</div>'
+    +'<div style="padding:10px 0;border-bottom:1px solid var(--bdr)">'
+    +'<div class="lbl">Business Start Date</div>'
+    +'<input class="inp mt8" type="date" value="'+esc(CFG.businessStartDate)+'" oninput="CFG.businessStartDate=this.value;save()"/>'
+    +'</div>'
+    +'<div style="padding:10px 0;border-bottom:1px solid var(--bdr)">'
+    +'<div class="lbl">Annual Income Goal ($)</div>'
+    +'<input class="inp mt8" type="number" value="'+CFG.annualIncomeGoal+'" oninput="CFG.annualIncomeGoal=parseInt(this.value)||100000;save()"/>'
+    +'</div></div>';
+
+  // scripture manager
+  html+='<div class="box mb10">'
+    +'<div class="section" style="margin-top:0">📖 Scripture Reminders</div>'
+    +CFG.scriptures.map(function(s,i){
+      return'<div style="padding:10px 0;border-bottom:1px solid var(--bdr)">'
+        +'<div style="display:flex;justify-content:space-between;align-items:flex-start">'
+        +'<div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--gold)">'+esc(s.ref)+'</div>'
+        +'<div style="font-size:12px;color:var(--muted);margin-top:2px;font-style:italic;line-height:1.5">'+esc(s.text)+'</div></div>'
+        +'<button class="xbtn" onclick="CFG.scriptures.splice('+i+',1);save();renderSettings()">&#10005;</button>'
+        +'</div></div>';
+    }).join("")
+    +'<div style="margin-top:12px">'
+    +'<input class="inp mb8" id="add-scr-ref" placeholder="Reference e.g. John 3:16"/>'
+    +'<textarea class="inp mb8" id="add-scr-text" rows="2" placeholder="KJV scripture text..."></textarea>'
+    +'<button class="sbtn" onclick="addScripture()">+ Add Scripture</button>'
+    +'</div></div>';
+
   // manage clients
   html+='<div class="box mb10">'
-    +'<div class="section" style="margin-top:0">Client Names (for dropdown)</div>'
+    +'<div class="section" style="margin-top:0">Client Names</div>'
     +CFG.clients.map(function(c,i){return'<div class="rowsb" style="padding:6px 0;border-bottom:1px solid var(--bdr)"><span style="font-size:13px">'+esc(c)+'</span><button class="xbtn" onclick="CFG.clients.splice('+i+',1);save();renderSettings()">&#10005;</button></div>';}).join("")
     +'<div class="row mt10"><input class="inp" id="add-client" placeholder="Add client name" style="flex:1"/><button class="sbtn" onclick="addListItem(\'clients\',\'add-client\')">Add</button></div>'
     +'</div>';
 
   // manage builders
   html+='<div class="box mb10">'
-    +'<div class="section" style="margin-top:0">Builder Names (for dropdown)</div>'
+    +'<div class="section" style="margin-top:0">Builder Names</div>'
     +CFG.builders.map(function(b,i){return'<div class="rowsb" style="padding:6px 0;border-bottom:1px solid var(--bdr)"><span style="font-size:13px">'+esc(b)+'</span><button class="xbtn" onclick="CFG.builders.splice('+i+',1);save();renderSettings()">&#10005;</button></div>';}).join("")
     +'<div class="row mt10"><input class="inp" id="add-builder" placeholder="Add builder name" style="flex:1"/><button class="sbtn" onclick="addListItem(\'builders\',\'add-builder\')">Add</button></div>'
     +'</div>';
 
-  html+='<button class="gbtn" style="width:100%" onclick="save();recalcAll();renderOverview();toast(\'Settings saved ✅\')">Save & Recalculate All Deals</button>';
+  html+='<button class="gbtn" style="width:100%" onclick="save();recalcAll();renderOverview();renderProjection();toast(\'Settings saved ✅\')">Save & Recalculate</button>';
   document.getElementById("psettings").innerHTML=html;
+}
+
+function addScripture(){
+  var ref=document.getElementById("add-scr-ref");
+  var txt=document.getElementById("add-scr-text");
+  if(!ref||!txt||!ref.value.trim()||!txt.value.trim()){toast("Please enter both reference and text");return;}
+  CFG.scriptures.push({ref:ref.value.trim(),text:txt.value.trim()});
+  save();renderSettings();toast("Scripture added 🙏");
 }
 
 function settingRow(label,id,val,onchange){
@@ -649,7 +699,232 @@ function addListItem(list,inputId){
   CFG[list].push(v);save();renderSettings();
 }
 
-/* ── utils ── */
+/* ══════════════════════════════════════════════
+   PROJECTION + SCRIPTURE TAB
+══════════════════════════════════════════════ */
+
+var SCRIPTURE_IDX=0;
+
+function renderProjection(){
+  recalcAll();
+  var html="";
+
+  /* ── SCRIPTURE SECTION ── */
+  var scrips=CFG.scriptures;
+  var s=scrips[SCRIPTURE_IDX%scrips.length];
+  html+='<div style="background:linear-gradient(135deg,#1a0a00,#2d1400 50%,#1a0a00);border-radius:16px;padding:20px;margin-bottom:16px;position:relative;overflow:hidden">'
+    +'<div style="position:absolute;top:10px;right:14px;font-size:28px;opacity:.15">✝️</div>'
+    +'<div style="font-size:10px;font-weight:700;color:#c47f00;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">🙏 Word of God — Reminder</div>'
+    +'<div style="font-size:15px;font-style:italic;color:#fff8e8;line-height:1.7;margin-bottom:10px">"'+esc(s.text)+'"</div>'
+    +'<div style="font-size:12px;font-weight:700;color:#c47f00">— '+esc(s.ref)+'</div>'
+    +'<div style="display:flex;gap:8px;margin-top:14px">'
+    +'<button onclick="SCRIPTURE_IDX--;renderProjection()" style="background:#ffffff22;border:1px solid #ffffff33;border-radius:8px;color:#fff8e8;padding:6px 14px;font-size:12px;font-weight:600">← Prev</button>'
+    +'<button onclick="SCRIPTURE_IDX++;renderProjection()" style="background:#c47f00;border:none;border-radius:8px;color:#fff;padding:6px 14px;font-size:12px;font-weight:600">Next →</button>'
+    +'<span style="font-size:11px;color:#ffffff66;align-self:center;margin-left:4px">'+(SCRIPTURE_IDX<0?((scrips.length+(SCRIPTURE_IDX%scrips.length))%scrips.length)+1:((SCRIPTURE_IDX%scrips.length)+1))+' of '+scrips.length+'</span>'
+    +'</div></div>';
+
+  /* ── PROJECTION ENGINE ── */
+  var today=new Date();today.setHours(0,0,0,0);
+  var todayS=today.toISOString().split("T")[0];
+  var startDate=new Date((CFG.businessStartDate||"2026-04-26")+"T00:00:00");
+  var daysActive=Math.max(1,Math.round((today-startDate)/(1000*60*60*24)));
+
+  // filter deals by pace window
+  var windowDays={
+    "30":30,"60":60,"quarter":90,"6mo":180,"12mo":365,"all":99999
+  }[CFG.paceWindow]||99999;
+  var windowStart=new Date(today);windowStart.setDate(today.getDate()-windowDays);
+  var windowStartS=windowStart.toISOString().split("T")[0];
+  var paceDeals=CFG.paceWindow==="all"
+    ?DEALS.slice()
+    :DEALS.filter(function(d){return d.closeDate>=windowStartS;});
+  var paceDealsCount=paceDeals.length;
+  var paceDays=CFG.paceWindow==="all"?daysActive:Math.min(windowDays,daysActive);
+  var dealsPerDay=paceDealsCount/Math.max(1,paceDays);
+  var avgVera=paceDealsCount>0?paceDeals.reduce(function(s,d){return s+(d.vera||0);},0)/paceDealsCount:0;
+  var avgPrice=paceDealsCount>0?paceDeals.reduce(function(s,d){return s+parseFloat(d.price||0);},0)/paceDealsCount:0;
+  var avgGross=paceDealsCount>0?paceDeals.reduce(function(s,d){return s+(d.gross||0);},0)/paceDealsCount:0;
+
+  // projection targets
+  var dec31=new Date(today.getFullYear(),11,31);
+  var capYear=getCapYear(todayS);
+  var feb28=new Date(capYear+1,1,28);
+  var daysToCalYear=Math.max(0,Math.round((dec31-today)/(1000*60*60*24)));
+  var daysToCapYear=Math.max(0,Math.round((feb28-today)/(1000*60*60*24)));
+
+  // projected deals
+  var projDealsCalYear=Math.round(dealsPerDay*daysToCalYear);
+  var projDealsCapYear=Math.round(dealsPerDay*daysToCapYear);
+
+  // current totals
+  var totalVera=DEALS.reduce(function(s,d){return s+(d.vera||0);},0);
+  var totalDeals=DEALS.length;
+  var curYearRedOne=DEALS.filter(function(d){return getCapYear(d.closeDate)===capYear;}).reduce(function(s,d){return s+(d.redOne||0);},0);
+
+  // project cap hit
+  var capRemaining=Math.max(0,CFG.capLimit-curYearRedOne);
+  var redOnePerDeal=paceDealsCount>0?paceDeals.reduce(function(s,d){return s+(d.redOne||0);},0)/paceDealsCount:0;
+  var dealsToCapHit=redOnePerDeal>0?Math.ceil(capRemaining/redOnePerDeal):999;
+  var daysToCapHit=dealsPerDay>0?Math.round(dealsToCapHit/dealsPerDay):999;
+  var capHitDate=new Date(today);capHitDate.setDate(today.getDate()+daysToCapHit);
+  var capAlreadyMet=curYearRedOne>=CFG.capLimit;
+
+  // projected income scenarios
+  function projIncome(deals,boost){
+    var income=0;var capPaid=curYearRedOne;var dc=totalDeals;
+    for(var i=0;i<Math.round(deals*boost);i++){
+      var res=calcDeal(avgPrice,parseFloat(CFG.commRate),todayS,dc,capPaid);
+      income+=res.vera;capPaid+=res.redOne;dc++;
+    }
+    return income;
+  }
+
+  var calConserv=totalVera+projIncome(projDealsCalYear,0.75);
+  var calLikely =totalVera+projIncome(projDealsCalYear,1.00);
+  var calBest   =totalVera+projIncome(projDealsCalYear,1.25);
+  var capConserv=totalVera+projIncome(projDealsCapYear,0.75);
+  var capLikely =totalVera+projIncome(projDealsCapYear,1.00);
+  var capBest   =totalVera+projIncome(projDealsCapYear,1.25);
+
+  // goal tracking
+  var goal=CFG.annualIncomeGoal||100000;
+  var goalRemaining=Math.max(0,goal-totalVera);
+  var dealsNeededForGoal=avgVera>0?Math.ceil(goalRemaining/avgVera):0;
+  var goalPct=Math.min(100,Math.round(totalVera/goal*100));
+  var onTrack=calLikely>=goal;
+
+  // pace window selector
+  var pwOpts=[
+    {val:"30",lbl:"Last 30 Days"},
+    {val:"60",lbl:"Last 60 Days"},
+    {val:"quarter",lbl:"Last Quarter"},
+    {val:"6mo",lbl:"Last 6 Months"},
+    {val:"12mo",lbl:"Last 12 Months"},
+    {val:"all",lbl:"All Deals Ever"}
+  ];
+  html+='<div class="box mb10">'
+    +'<div class="rowsb mb10"><div style="font-size:15px;font-weight:700;color:var(--gold)">📈 Income Projection</div>'
+    +'<select class="inp" style="width:auto;font-size:12px;padding:6px 10px" onchange="CFG.paceWindow=this.value;save();renderProjection()">'
+    +pwOpts.map(function(o){return'<option value="'+o.val+'"'+(CFG.paceWindow===o.val?" selected":"")+'>'+o.lbl+'</option>';}).join("")
+    +'</select></div>'
+
+    // pace stats
+    +'<div style="background:#f5f2ec;border-radius:10px;padding:12px;margin-bottom:12px">'
+    +'<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Your Pace ('+pwOpts.find(function(o){return o.val===CFG.paceWindow;}).lbl+')</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">'
+    +'<div style="text-align:center"><div style="font-size:18px;font-weight:700;color:var(--gold)">'+paceDealsCount+'</div><div style="font-size:10px;color:var(--muted)">Deals</div></div>'
+    +'<div style="text-align:center"><div style="font-size:18px;font-weight:700;color:var(--gold)">'+(dealsPerDay*30).toFixed(1)+'</div><div style="font-size:10px;color:var(--muted)">Per Month</div></div>'
+    +'<div style="text-align:center"><div style="font-size:18px;font-weight:700;color:var(--gold)">'+fmt(avgVera)+'</div><div style="font-size:10px;color:var(--muted)">Avg Income</div></div>'
+    +'</div>'
+    +'<div style="font-size:11px;color:var(--muted);margin-top:8px;text-align:center">Active since '+fmtDate(CFG.businessStartDate)+' · '+daysActive+' days · 1 deal every '+(dealsPerDay>0?Math.round(1/dealsPerDay):0)+' days</div>'
+    +'</div>'
+
+    // calendar year projection
+    +'<div style="font-size:13px;font-weight:700;color:var(--txt);margin-bottom:8px">To Dec 31, '+today.getFullYear()+' <span style="font-size:11px;color:var(--muted)">('+daysToCalYear+' days left)</span></div>'
+    +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">'
+    +projBox("Conservative","75% pace",calConserv,"#e65100")
+    +projBox("Likely","100% pace",calLikely,"#2e7d32")
+    +projBox("Best Case","125% pace",calBest,"#1565c0")
+    +'</div>'
+
+    // cap year projection
+    +'<div style="font-size:13px;font-weight:700;color:var(--txt);margin-bottom:8px">To Feb 28, '+(capYear+1)+' <span style="font-size:11px;color:var(--muted)">(cap year end · '+daysToCapYear+' days left)</span></div>'
+    +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">'
+    +projBox("Conservative","75% pace",capConserv,"#e65100")
+    +projBox("Likely","100% pace",capLikely,"#2e7d32")
+    +projBox("Best Case","125% pace",capBest,"#1565c0")
+    +'</div></div>';
+
+  // RedOne cap projection
+  html+='<div class="box mb10">';
+  if(capAlreadyMet){
+    html+='<div style="background:#e8f5e9;border-radius:10px;padding:12px;text-align:center">'
+      +'<div style="font-size:20px">🎉</div>'
+      +'<div style="font-size:14px;font-weight:700;color:#2e7d32;margin-top:4px">RedOne Cap Already Met!</div>'
+      +'<div style="font-size:12px;color:var(--muted);margin-top:4px">RedOne takes $0 from all remaining deals this year. Every deal goes further into Vera\'s pocket.</div>'
+      +'</div>';
+  } else {
+    html+='<div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:8px">🏢 RedOne Cap Projection</div>'
+      +'<div style="background:#fff8e8;border-radius:10px;padding:12px">'
+      +'<div style="font-size:13px;margin-bottom:6px">At current pace, cap will be met in approximately:</div>'
+      +'<div style="font-size:22px;font-weight:700;color:#c47f00;margin-bottom:4px">'+dealsToCapHit+' more deal'+(dealsToCapHit!==1?'s':'')+'</div>'
+      +'<div style="font-size:12px;color:var(--muted)">Est. date: '+fmtDate(capHitDate.toISOString().split("T")[0])+'</div>'
+      +'<div style="font-size:12px;color:var(--muted);margin-top:4px">Remaining to cap: '+fmt(capRemaining)+' of '+fmt(CFG.capLimit)+'</div>'
+      +'<div style="height:8px;background:#f0ebe0;border-radius:4px;margin-top:8px;overflow:hidden">'
+      +'<div style="height:8px;background:#f0d080;border-radius:4px;width:'+Math.min(100,Math.round(curYearRedOne/CFG.capLimit*100))+'%"></div>'
+      +'</div></div>';
+  }
+  html+='</div>';
+
+  // goal tracker
+  html+='<div class="box mb10">'
+    +'<div class="rowsb mb10"><div style="font-size:13px;font-weight:700;color:var(--gold)">🎯 Annual Income Goal</div>'
+    +'<div style="display:flex;align-items:center;gap:6px">'
+    +'<span style="font-size:12px;color:var(--muted)">Goal: $</span>'
+    +'<input type="number" value="'+CFG.annualIncomeGoal+'" oninput="CFG.annualIncomeGoal=parseInt(this.value)||100000;save();renderProjection()" style="background:#f5f2ec;border:1px solid var(--bdr2);border-radius:6px;padding:4px 8px;font-size:13px;width:100px;outline:none"/>'
+    +'</div></div>'
+    +'<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px">'
+    +'<span>'+fmt(totalVera)+' earned</span><span>'+fmt(goal)+' goal</span></div>'
+    +'<div style="height:12px;background:#f0ebe0;border-radius:6px;overflow:hidden;margin-bottom:8px">'
+    +'<div style="height:12px;background:'+(goalPct>=100?'#a5d6a7':'#f0d080')+';border-radius:6px;width:'+goalPct+'%;transition:width .3s"></div>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">'
+    +'<div style="text-align:center;background:#f5f2ec;border-radius:8px;padding:8px"><div style="font-size:16px;font-weight:700;color:var(--gold)">'+goalPct+'%</div><div style="font-size:10px;color:var(--muted)">Complete</div></div>'
+    +'<div style="text-align:center;background:#f5f2ec;border-radius:8px;padding:8px"><div style="font-size:16px;font-weight:700;color:var(--gold)">'+fmt(goalRemaining)+'</div><div style="font-size:10px;color:var(--muted)">Remaining</div></div>'
+    +'<div style="text-align:center;background:'+(onTrack?'#e8f5e9':'#fff8e8')+';border-radius:8px;padding:8px"><div style="font-size:14px;font-weight:700;color:'+(onTrack?'#2e7d32':'#e65100')+'">'+(onTrack?'✅ On Track':'⚡ Push More')+'</div><div style="font-size:10px;color:var(--muted)">'+dealsNeededForGoal+' more deals</div></div>'
+    +'</div></div>';
+
+  /* ── PROFIT TIMELINE ── */
+  html+='<div class="section">📅 Profit Timeline — Ascending by Date</div>';
+  if(!DEALS.length){
+    html+='<div class="empty">No deals yet — record your first deal!</div>';
+  } else {
+    var sorted=DEALS.slice().sort(function(a,b){return a.closeDate.localeCompare(b.closeDate);});
+    var running=0;
+    html+='<div class="box">';
+    // table header
+    html+='<div style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr 1fr;gap:4px;padding:6px 0;border-bottom:2px solid var(--bdr)">'
+      +'<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase">Date</div>'
+      +'<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase">Client</div>'
+      +'<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;text-align:right">Profit</div>'
+      +'<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;text-align:right">RedOne</div>'
+      +'<div style="font-size:10px;font-weight:700;color:#2e7d32;text-transform:uppercase;text-align:right">Running</div>'
+      +'</div>';
+    sorted.forEach(function(d,i){
+      running+=d.vera||0;
+      var dt=dtypeMeta(d.type);
+      var isLast=i===sorted.length-1;
+      html+='<div style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr 1fr;gap:4px;padding:10px 0;border-bottom:'+(isLast?'none':'1px solid var(--bdr)')+';align-items:start">'
+        +'<div><div style="font-size:11px;font-weight:600">'+fmtDate(d.closeDate)+'</div><div style="font-size:10px;color:var(--muted)">'+dt.icon+' '+esc(dt.label.split(" ").slice(1).join(" "))+'</div></div>'
+        +'<div><div style="font-size:12px;font-weight:600;word-break:break-word">'+esc(d.client)+'</div>'+(d.builder?'<div style="font-size:10px;color:var(--muted)">'+esc(d.builder)+'</div>':'')+'</div>'
+        +'<div style="text-align:right"><div style="font-size:12px;font-weight:700;color:#2e7d32">'+fmtK(d.vera||0)+'</div></div>'
+        +'<div style="text-align:right"><div style="font-size:12px;color:#c62828">-'+fmtK(d.redOne||0)+'</div></div>'
+        +'<div style="text-align:right"><div style="font-size:12px;font-weight:700;color:'+(isLast?'#1565c0':'var(--txt)')+'">'+fmtK(running)+'</div></div>'
+        +'</div>';
+    });
+    // totals row
+    var totalR=DEALS.reduce(function(s,d){return s+(d.redOne||0);},0);
+    var totalV=DEALS.reduce(function(s,d){return s+(d.vera||0);},0);
+    html+='<div style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr 1fr;gap:4px;padding:10px 0;background:#f0faf0;border-radius:8px;margin-top:4px">'
+      +'<div style="font-size:12px;font-weight:700;padding-left:4px">TOTAL</div>'
+      +'<div style="font-size:11px;color:var(--muted)">'+DEALS.length+' deals</div>'
+      +'<div style="text-align:right;font-size:13px;font-weight:700;color:#2e7d32">'+fmtK(totalV)+'</div>'
+      +'<div style="text-align:right;font-size:13px;font-weight:700;color:#c62828">-'+fmtK(totalR)+'</div>'
+      +'<div style="text-align:right;font-size:13px;font-weight:700;color:#1565c0">'+fmtK(totalV)+'</div>'
+      +'</div>';
+    html+='</div>';
+  }
+
+  document.getElementById("pprojection").innerHTML=html;
+}
+
+function projBox(label,sub,amt,color){
+  return'<div style="background:'+color+'12;border:1px solid '+color+'33;border-radius:10px;padding:10px;text-align:center">'
+    +'<div style="font-size:10px;font-weight:700;color:'+color+';text-transform:uppercase;letter-spacing:.4px">'+label+'</div>'
+    +'<div style="font-size:16px;font-weight:700;color:'+color+';margin:4px 0">'+fmtK(amt)+'</div>'
+    +'<div style="font-size:9px;color:var(--muted)">'+sub+'</div>'
+    +'</div>';
+}
 function getYears(){
   var ys={};DEALS.forEach(function(d){ys[getCapYear(d.closeDate)]=1;});return Object.keys(ys).map(Number);
 }
@@ -669,7 +944,7 @@ function load(){
 
 /* ── init ── */
 load();recalcAll();
-renderOverview();renderDeals();renderByYear();renderSettings();
+renderOverview();renderDeals();renderByYear();renderProjection();renderSettings();
 </script>
 </body>
 </html>
