@@ -3,445 +3,673 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Vera's Profit Calculator</title>
+<title>Vera · Profit Dashboard</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{--gold:#c47f00;--bg:#f9f6f0;--card:#fff;--bdr:#e8e0d0;--txt:#1a1a1a;--muted:#888;--green:#2e7d32;--red:#c62828;--orange:#e65100}
-body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;padding:0 0 40px}
-input,select{font-family:inherit;font-size:16px}
+:root{--bg:#f9f6f0;--card:#fff;--bdr:#e8e0d0;--bdr2:#d8d0c0;--txt:#1a1a1a;--muted:#888;--dim:#bbb;--gold:#c47f00;--green:#2e7d32;--red:#c62828;--blue:#1565c0;--purple:#6a1b9a;--orange:#e65100}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;padding-bottom:40px;-webkit-text-size-adjust:100%}
 button{font-family:inherit;cursor:pointer;touch-action:manipulation}
+input,select,textarea{font-family:inherit;font-size:16px}
 
 /* header */
-#hdr{background:linear-gradient(135deg,#fffaf0,#fff8e8 50%,#fffaf0);border-bottom:2px solid #e8d8b0;padding:18px 20px;text-align:center}
-.logo{font-size:20px;font-weight:700;color:#b06a00}
-.sub{font-size:12px;color:#a08060;margin-top:3px}
+#hdr{background:linear-gradient(135deg,#fffaf0,#fff8e8 50%,#fffaf0);border-bottom:2px solid #e8d8b0;padding:15px 18px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:17px;font-weight:700;color:#b06a00}
+.sub{font-size:11px;color:#a08060;margin-top:2px}
+
+/* tabs */
+#tabs{display:flex;background:#fff;border-bottom:1px solid var(--bdr);overflow-x:auto;padding:0 14px;scrollbar-width:none}
+#tabs::-webkit-scrollbar{display:none}
+.tab{font-size:12px;font-weight:600;padding:12px 13px;border:none;background:none;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap}
+.tab.on{color:var(--gold);border-bottom:2px solid var(--gold)}
 
 /* body */
-#wrap{max-width:500px;margin:0 auto;padding:18px 16px}
+#body{padding:16px 14px;max-width:900px;margin:0 auto}
+.panel{display:none}.panel.on{display:block}
 
 /* cards */
-.card{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.box{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:16px;margin-bottom:12px}
+.box.hi{border-color:#e8d8b0}
+.box.green{border-color:#a5d6a7;background:#f0faf0}
+.box.blue{border-color:#90caf9;background:#f0f7ff}
+.box.red{border-color:#ef9a9a;background:#fff5f5}
 
-/* labels */
-.lbl{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
-.field{margin-bottom:14px}
+/* typography */
+.ptitle{font-size:18px;font-weight:700;color:var(--gold);margin-bottom:0}
+.section{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin:16px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--bdr)}
+
+/* buttons */
+.gbtn{background:var(--gold);color:#fff;border:none;border-radius:10px;padding:9px 16px;font-size:13px;font-weight:700;min-height:44px}
+.sbtn{background:#f5f2ec;color:var(--gold);border:1px solid var(--bdr2);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;min-height:36px}
+.sbtn.sml{padding:4px 10px;font-size:11px;min-height:28px}
+.sbtn.on{background:var(--gold);color:#fff;border-color:var(--gold)}
+.xbtn{background:none;border:none;color:var(--dim);font-size:20px;padding:2px 6px;line-height:1}
 
 /* inputs */
-.inp{background:#f5f2ec;border:1px solid #ddd8cc;border-radius:10px;padding:12px 14px;color:var(--txt);width:100%;outline:none;font-size:16px;transition:border .2s}
+.inp{background:#f5f2ec;border:1px solid var(--bdr2);border-radius:8px;padding:10px 12px;color:var(--txt);width:100%;outline:none;display:block}
 .inp:focus{border-color:var(--gold)}
-.inp::placeholder{color:#bbb}
+.inp::placeholder{color:var(--dim)}
+textarea.inp{resize:vertical}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.lbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.field{margin-bottom:12px}
 
-/* commission rate row */
-.rate-row{display:flex;gap:8px;margin-bottom:14px}
-.rate-btn{flex:1;padding:10px 4px;border-radius:10px;border:1px solid #ddd8cc;background:#f5f2ec;font-size:14px;font-weight:700;color:var(--muted);transition:all .15s}
-.rate-btn.on{background:var(--gold);border-color:var(--gold);color:#fff}
+/* stat boxes */
+.stat{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:14px;text-align:center}
+.stat .sn{font-size:22px;font-weight:700;color:var(--gold);line-height:1}
+.stat .sl{font-size:10px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.4px}
 
-/* calculate button */
-.calc-btn{width:100%;padding:14px;background:var(--gold);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;letter-spacing:.3px;margin-top:4px;box-shadow:0 3px 12px rgba(196,127,0,.3)}
+/* deal type chips */
+.dtype-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.dtype-btn{padding:7px 12px;border-radius:20px;font-size:12px;font-weight:700;border:1px solid var(--bdr2);background:#f5f2ec;color:var(--muted)}
+.dtype-btn.on{background:var(--gold);border-color:var(--gold);color:#fff}
 
-/* result card */
-#result{display:none}
-.res-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
-.res-client{font-size:18px;font-weight:700}
-.res-date{font-size:12px;color:var(--muted);margin-top:3px}
-.res-takehome{text-align:right}
-.res-takehome-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-.res-takehome-amt{font-size:28px;font-weight:700;color:var(--green)}
-
-/* breakdown rows */
-.brow{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #f0ebe0}
-.brow:last-child{border-bottom:none}
-.brow-left{display:flex;align-items:center;gap:10px}
-.brow-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
-.brow-label{font-size:13px;font-weight:600}
-.brow-sub{font-size:11px;color:var(--muted);margin-top:1px}
-.brow-amt{font-size:15px;font-weight:700}
-.brow-amt.minus{color:var(--red)}
-.brow-amt.plus{color:var(--green)}
-
-/* phase badge */
-.phase-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:14px}
+/* deal rows */
+.drow{display:flex;align-items:flex-start;gap:10px;padding:12px 0;border-bottom:1px solid var(--bdr)}
+.drow:last-child{border-bottom:none}
+.dtype-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.dinfo{flex:1;min-width:0}
+.dname{font-size:14px;font-weight:700}
+.dsub{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5}
+.damts{text-align:right;flex-shrink:0}
+.dvera{font-size:16px;font-weight:700;color:var(--green)}
+.dgross{font-size:11px;color:var(--muted);margin-top:2px}
 
 /* progress bar */
-.pbar-wrap{margin-top:16px}
-.pbar-lbl{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:5px}
-.pbar-track{height:10px;background:#f0ebe0;border-radius:5px;overflow:hidden;display:flex}
-.pbar-seg{height:10px;transition:width .4s}
+.pbar-wrap{margin-top:8px}
+.pbar-track{height:8px;background:#f0ebe0;border-radius:4px;overflow:hidden;display:flex}
+.pbar-seg{height:8px}
+.pbar-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:5px}
+.pleg{display:flex;align-items:center;gap:4px;font-size:10px}
+.pleg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
 
-/* cap info */
-.cap-box{background:#f0faf0;border:1px solid #a5d6a7;border-radius:10px;padding:12px 14px;margin-top:14px;font-size:12px;color:var(--green);line-height:1.6}
-.cap-box.warn{background:#fff8e8;border-color:#ffe082;color:#b06a00}
+/* filter row */
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.fbtn{padding:6px 12px;border-radius:20px;font-size:11px;font-weight:700;border:1px solid var(--bdr2);background:#f5f2ec;color:var(--muted)}
+.fbtn.on{background:var(--gold);border-color:var(--gold);color:#fff}
 
-/* settings toggle */
-.settings-toggle{font-size:12px;color:var(--gold);font-weight:700;background:none;border:none;padding:0;margin-bottom:10px;text-decoration:underline}
-#settings-box{display:none}
-.settings-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0ebe0;font-size:13px}
-.settings-row:last-child{border-bottom:none}
-.settings-val{display:flex;align-items:center;gap:8px}
-.mini-btn{background:#f5f2ec;border:1px solid #ddd8cc;border-radius:6px;padding:3px 10px;font-size:12px;font-weight:700;color:var(--txt)}
-.mini-inp{background:#f5f2ec;border:1px solid #ddd8cc;border-radius:6px;padding:4px 8px;font-size:13px;width:70px;text-align:center;outline:none}
+/* year card */
+.year-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.year-title{font-size:16px;font-weight:700}
+.year-income{text-align:right}
+.year-income-lbl{font-size:10px;color:var(--muted);text-transform:uppercase}
+.year-income-amt{font-size:22px;font-weight:700;color:var(--green)}
 
-/* history */
-.hist-item{padding:10px 0;border-bottom:1px solid #f0ebe0;display:flex;justify-content:space-between;align-items:center}
-.hist-item:last-child{border-bottom:none}
-.hist-name{font-size:13px;font-weight:600}
-.hist-detail{font-size:11px;color:var(--muted);margin-top:2px}
-.hist-amt{font-size:14px;font-weight:700;color:var(--green)}
-.clear-btn{font-size:11px;color:var(--red);background:none;border:none;padding:0;text-decoration:underline}
+/* chips */
+.chip{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700}
 
-@media(max-width:400px){
-  .res-takehome-amt{font-size:22px}
-  .rate-btn{font-size:12px}
+/* misc */
+.row{display:flex;align-items:center;gap:8px}
+.rowsb{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mt8{margin-top:8px}.mt10{margin-top:10px}.mt12{margin-top:12px}
+.mb8{margin-bottom:8px}.mb10{margin-bottom:10px}.mb14{margin-bottom:14px}
+.empty{text-align:center;padding:32px 0;color:var(--dim);font-size:13px}
+
+/* toast */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;white-space:nowrap}
+#toast.show{opacity:1}
+
+@media(max-width:600px){
+  .g2{grid-template-columns:1fr}.g3{gap:6px}.g4{grid-template-columns:1fr 1fr}
+  .stat .sn{font-size:18px}#hdr .right{display:none}
+  .dname{font-size:13px}.dvera{font-size:14px}
 }
 </style>
 </head>
 <body>
 
 <div id="hdr">
-  <div class="logo">💰 Vera's Profit Calculator</div>
-  <div class="sub">Real Estate Commission Breakdown</div>
+  <div>
+    <div class="logo">Vera Adegoke · Profit Dashboard 💰</div>
+    <div class="sub">Real Estate · Columbus, OH</div>
+  </div>
+  <a href="index.html" style="font-size:12px;color:var(--gold);font-weight:700;text-decoration:none;border:1px solid var(--gold);border-radius:8px;padding:6px 12px">← Dashboard</a>
 </div>
 
-<div id="wrap">
-
-  <!-- INPUT CARD -->
-  <div class="card">
-
-    <button class="settings-toggle" onclick="toggleSettings()">⚙️ Commission Settings</button>
-    <div id="settings-box">
-      <div class="settings-row">
-        <span>Commission Rate</span>
-        <div class="settings-val">
-          <input class="mini-inp" id="s-rate" value="3" type="number" min="1" max="10" step="0.5"/> %
-        </div>
-      </div>
-      <div class="settings-row">
-        <span>RedOne Cut</span>
-        <div class="settings-val">
-          <input class="mini-inp" id="s-redone" value="30" type="number" min="0" max="50"/> %
-        </div>
-      </div>
-      <div class="settings-row">
-        <span>RedOne Annual Cap</span>
-        <div class="settings-val">
-          $ <input class="mini-inp" id="s-cap" value="6000" type="number" min="0" step="500"/>
-        </div>
-      </div>
-      <div class="settings-row">
-        <span>Mentoring (first 6 deals)</span>
-        <div class="settings-val">
-          <input class="mini-inp" id="s-ment1" value="20" type="number" min="0" max="50"/> %
-        </div>
-      </div>
-      <div class="settings-row">
-        <span>Mentoring (after 6 deals)</span>
-        <div class="settings-val">
-          <input class="mini-inp" id="s-ment2" value="10" type="number" min="0" max="50"/> %
-        </div>
-      </div>
-      <div class="settings-row">
-        <span>Cap resets every</span>
-        <div class="settings-val" style="font-size:12px;color:var(--muted)">March 1st</div>
-      </div>
-      <div style="margin-top:10px;margin-bottom:4px">
-        <div class="lbl">In Mentoring Program?</div>
-        <div style="display:flex;gap:8px">
-          <button class="rate-btn on" id="ment-yes" onclick="setMent(true)">Yes</button>
-          <button class="rate-btn" id="ment-no" onclick="setMent(false)">No</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="field">
-      <div class="lbl">Client Name</div>
-      <input class="inp" id="client" placeholder="e.g. Suzel & Husband"/>
-    </div>
-
-    <div class="field">
-      <div class="lbl">Expected Sale Price ($)</div>
-      <input class="inp" id="price" placeholder="e.g. 280000" type="number" inputmode="numeric"/>
-    </div>
-
-    <div class="field">
-      <div class="lbl">Commission Rate</div>
-      <div class="rate-row">
-        <button class="rate-btn" onclick="setRate(2.5,this)">2.5%</button>
-        <button class="rate-btn on" id="rate-3" onclick="setRate(3,this)">3%</button>
-        <button class="rate-btn" onclick="setRate(3.5,this)">3.5%</button>
-        <button class="rate-btn" onclick="setCustomRate(this)">Custom</button>
-      </div>
-      <input class="inp" id="custom-rate" placeholder="Enter custom % e.g. 2.75" style="display:none;margin-top:8px" type="number" step="0.25"/>
-    </div>
-
-    <div class="field">
-      <div class="lbl">Expected Close Date</div>
-      <input class="inp" id="closedate" type="date"/>
-    </div>
-
-    <div class="field">
-      <div class="lbl">Deals Completed So Far This Year</div>
-      <div style="display:flex;align-items:center;gap:12px;margin-top:4px">
-        <button class="mini-btn" onclick="changeDeal(-1)">−</button>
-        <span id="deal-count" style="font-size:20px;font-weight:700;color:var(--gold);min-width:30px;text-align:center">0</span>
-        <button class="mini-btn" onclick="changeDeal(1)">+</button>
-        <span id="deal-hint" style="font-size:11px;color:var(--muted)">6 more → 10% mentoring</span>
-      </div>
-    </div>
-
-    <div class="field">
-      <div class="lbl">RedOne Cap Paid So Far This Year ($)</div>
-      <input class="inp" id="cappaid" placeholder="e.g. 2000 (leave 0 if none)" type="number" inputmode="numeric" value="0"/>
-    </div>
-
-    <button class="calc-btn" onclick="calculate()">Calculate My Profit 💰</button>
-  </div>
-
-  <!-- RESULT CARD -->
-  <div class="card" id="result">
-    <div class="res-header">
-      <div>
-        <div class="res-client" id="r-client"></div>
-        <div class="res-date" id="r-date"></div>
-      </div>
-      <div class="res-takehome">
-        <div class="res-takehome-lbl">Vera Takes Home</div>
-        <div class="res-takehome-amt" id="r-vera"></div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px" id="r-pct"></div>
-      </div>
-    </div>
-
-    <div id="r-phase-badge"></div>
-
-    <div id="r-breakdown"></div>
-
-    <div id="r-capinfo"></div>
-
-    <div class="pbar-wrap">
-      <div class="pbar-lbl">
-        <span>How commission is split</span>
-        <span id="r-gross"></span>
-      </div>
-      <div class="pbar-track" id="r-bar"></div>
-      <div style="display:flex;gap:14px;margin-top:6px;flex-wrap:wrap" id="r-legend"></div>
-    </div>
-  </div>
-
-  <!-- HISTORY CARD -->
-  <div class="card" id="hist-card" style="display:none">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <div style="font-size:14px;font-weight:700;color:var(--gold)">📋 Recent Calculations</div>
-      <button class="clear-btn" onclick="clearHistory()">Clear all</button>
-    </div>
-    <div id="hist-list"></div>
-  </div>
-
+<div id="tabs">
+  <button class="tab on" onclick="go('overview',this)">📊 Overview</button>
+  <button class="tab" onclick="go('deals',this)">🗂️ All Deals</button>
+  <button class="tab" onclick="go('byyear',this)">📆 By Year</button>
+  <button class="tab" onclick="go('settings',this)">⚙️ Settings</button>
 </div>
+
+<div id="body">
+  <div id="poverview" class="panel on"></div>
+  <div id="pdeals"    class="panel"></div>
+  <div id="pbyyear"   class="panel"></div>
+  <div id="psettings" class="panel"></div>
+</div>
+
+<div id="toast"></div>
 
 <script>
-var dealCount=0;
-var inMentoring=true;
-var selectedRate=3;
-var history=[];
-
-try{var h=localStorage.getItem("vera_calc_hist");if(h)history=JSON.parse(h);}catch(e){}
-try{var dc=localStorage.getItem("vera_calc_deals");if(dc){dealCount=parseInt(dc)||0;updateDealHint();}}catch(e){}
-try{var im=localStorage.getItem("vera_calc_ment");if(im!==null)inMentoring=im==="true";}catch(e){}
-
-// set default close date to today
-document.getElementById("closedate").value=new Date().toISOString().split("T")[0];
-
-function fmt(n){return"$"+Number(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",");}
+/* ── helpers ── */
+var MN=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function fmt(n){return"$"+Number(n||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",");}
 function fmtK(n){return n>=1000?"$"+(n/1000).toFixed(1)+"k":fmt(n);}
+function fmtM(n){return n>=1000000?"$"+(n/1000000).toFixed(2)+"M":n>=1000?"$"+(n/1000).toFixed(0)+"k":fmt(n);}
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function todayStr(){return new Date().toISOString().split("T")[0];}
+function fmtDate(s){if(!s)return"";var d=new Date(s+"T12:00:00");return MN[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear();}
+function getCapYear(ds){var d=ds?new Date(ds+"T12:00:00"):new Date();var y=d.getFullYear(),m=d.getMonth()+1;return m>=3?y:y-1;}
+function toast(msg){var t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(function(){t.classList.remove("show");},2800);}
+function chip(color,lbl){return'<span class="chip" style="background:'+color+'22;color:'+color+'">'+esc(lbl)+'</span>';}
 
-function setRate(r,btn){
-  selectedRate=r;
-  document.querySelectorAll(".rate-btn").forEach(function(b){b.classList.remove("on");});
-  btn.classList.add("on");
-  document.getElementById("custom-rate").style.display="none";
-  document.getElementById("s-rate").value=r;
-}
-function setCustomRate(btn){
-  document.querySelectorAll(".rate-btn").forEach(function(b){b.classList.remove("on");});
-  btn.classList.add("on");
-  document.getElementById("custom-rate").style.display="block";
-  document.getElementById("custom-rate").focus();
-}
-function setMent(val){
-  inMentoring=val;
-  document.getElementById("ment-yes").classList.toggle("on",val);
-  document.getElementById("ment-no").classList.toggle("on",!val);
-  localStorage.setItem("vera_calc_ment",val);
-}
-function toggleSettings(){
-  var b=document.getElementById("settings-box");
-  b.style.display=b.style.display==="block"?"none":"block";
-}
-function changeDeal(n){
-  dealCount=Math.max(0,dealCount+n);
-  document.getElementById("deal-count").textContent=dealCount;
-  updateDealHint();
-  localStorage.setItem("vera_calc_deals",dealCount);
-}
-function updateDealHint(){
-  document.getElementById("deal-count").textContent=dealCount;
-  var hint=document.getElementById("deal-hint");
-  if(!inMentoring)hint.textContent="Not in mentoring program";
-  else if(dealCount<6)hint.textContent=(6-dealCount)+" more deal"+(6-dealCount!==1?"s":"")+" → 10% mentoring";
-  else hint.textContent="✅ 10% mentoring rate active";
+var ACTIVE="overview";
+function go(id,btn){
+  document.querySelectorAll(".panel").forEach(function(p){p.classList.remove("on");});
+  document.querySelectorAll(".tab").forEach(function(t){t.classList.remove("on");});
+  document.getElementById("p"+id).classList.add("on");
+  btn.classList.add("on");ACTIVE=id;
 }
 
-function getCapYear(dateStr){
-  var d=dateStr?new Date(dateStr):new Date();
-  var y=d.getFullYear(),m=d.getMonth()+1;
-  return m>=3?y:y-1;
-}
+/* ── deal types ── */
+var DTYPES=[
+  {id:"newbuild",   label:"🏗️ New Build",       icon:"🏗️", color:"#1565c0"},
+  {id:"existing",   label:"🏠 Existing Purchase", icon:"🏠", color:"#2e7d32"},
+  {id:"shortsale",  label:"🏚️ Short Sale",        icon:"🏚️", color:"#c62828"},
+  {id:"land",       label:"🌳 Land / Lot",         icon:"🌳", color:"#558b2f"},
+  {id:"commercial", label:"🏢 Commercial",          icon:"🏢", color:"#6a1b9a"},
+  {id:"rental",     label:"🔑 Rental / Lease",      icon:"🔑", color:"#e65100"},
+  {id:"other",      label:"📦 Other",               icon:"📦", color:"#888"}
+];
+function dtypeMeta(id){return DTYPES.find(function(d){return d.id===id;})||DTYPES[DTYPES.length-1];}
 
-function calculate(){
-  // get inputs
-  var client=document.getElementById("client").value.trim()||"Client";
-  var priceRaw=document.getElementById("price").value.replace(/[^0-9.]/g,"");
-  var price=parseFloat(priceRaw);
-  var closeDateStr=document.getElementById("closedate").value;
-  var capPaidSoFar=parseFloat(document.getElementById("cappaid").value)||0;
+/* ── settings ── */
+var CFG={
+  commRate:3,
+  redOnePct:30,
+  capLimit:6000,
+  ment1Pct:20,
+  ment2Pct:10,
+  inMentoring:true,
+  dealsCompleted:0,
+  clients:["Suzel & Husband","Si Zahara","Lucy","Zion","Michael (Dr. Horton)","Pastor Lanre"],
+  builders:["Maronda Homes","Rockford Homes","Fisher's Homes","Dr. Horton","Ryan Homes","M/I Homes"]
+};
 
-  // get rate
-  var customRateEl=document.getElementById("custom-rate");
-  var rate=selectedRate;
-  if(customRateEl.style.display!=="none"&&customRateEl.value){
-    rate=parseFloat(customRateEl.value)||3;
-  }
+/* ── deals data ── */
+var DEALS=[];
+var DEAL_FILTER={year:"all",type:"all",builder:"all"};
+var DEAL_OPEN=false;
+var DEAL_EDITING=null;
+var ND={
+  client:"",clientCustom:"",
+  type:"newbuild",
+  builder:"",builderCustom:"",
+  referral:"",
+  price:"",
+  commRate:"",
+  closeDate:todayStr(),
+  notes:""
+};
 
-  // get settings
-  var redOnePct=(parseFloat(document.getElementById("s-redone").value)||30)/100;
-  var capLimit=parseFloat(document.getElementById("s-cap").value)||6000;
-  var ment1Pct=(parseFloat(document.getElementById("s-ment1").value)||20)/100;
-  var ment2Pct=(parseFloat(document.getElementById("s-ment2").value)||10)/100;
-
-  if(!price||price<=0){alert("Please enter a valid sale price");return;}
-  if(!closeDateStr){alert("Please select a close date");return;}
-
-  // calculate
+/* ── calc ── */
+function calcDeal(price,rate,closeDate,dealsBeforeThis,capPaidBefore){
   var gross=price*(rate/100);
-
-  // RedOne: 30% until cap
+  var redOnePct=CFG.redOnePct/100;
   var redOneAmt=gross*redOnePct;
-  var remaining=capLimit-capPaidSoFar;
+  var remaining=CFG.capLimit-capPaidBefore;
   if(remaining<=0)redOneAmt=0;
   else if(redOneAmt>remaining)redOneAmt=remaining;
-  var capAfter=capPaidSoFar+redOneAmt;
-  var capMet=capAfter>=capLimit;
-
-  // Mentoring
   var mentAmt=0;
-  var mentPct=0;
-  var mentLabel="";
-  if(inMentoring){
-    mentPct=dealCount<6?ment1Pct:ment2Pct;
-    mentAmt=gross*mentPct;
-    mentLabel=dealCount<6?"20% (first 6 deals)":"10% (after 6 deals)";
+  if(CFG.inMentoring){
+    var mp=dealsBeforeThis<6?CFG.ment1Pct/100:CFG.ment2Pct/100;
+    mentAmt=gross*mp;
   }
-
   var vera=gross-redOneAmt-mentAmt;
-  var veraPct=Math.round(vera/gross*100);
+  return{gross:gross,redOne:redOneAmt,mentoring:mentAmt,vera:vera};
+}
 
-  // phase
-  var phase="";
-  if(inMentoring&&dealCount<6&&!capMet)phase="Phase 1 — Mentoring + RedOne active";
-  else if(inMentoring&&dealCount<6&&capMet)phase="Phase 1B — Mentoring active · RedOne cap met!";
-  else if(inMentoring&&dealCount>=6&&!capMet)phase="Phase 2 — 10% Mentoring + RedOne active";
-  else if(inMentoring&&dealCount>=6&&capMet)phase="Phase 2B — 10% Mentoring · RedOne cap met!";
-  else if(!inMentoring&&!capMet)phase="No Mentoring — RedOne active";
-  else phase="No Mentoring — RedOne cap met!";
+function recalcAll(){
+  // sort by close date
+  var sorted=DEALS.slice().sort(function(a,b){return a.closeDate.localeCompare(b.closeDate);});
+  var capByYear={};var dealsBefore=0;
+  sorted.forEach(function(d){
+    var cy=getCapYear(d.closeDate);
+    if(!capByYear[cy])capByYear[cy]=0;
+    var rate=parseFloat(d.commRate)||CFG.commRate;
+    var res=calcDeal(parseFloat(d.price),rate,d.closeDate,dealsBefore,capByYear[cy]);
+    d.gross=res.gross;d.redOne=res.redOne;d.mentoring=res.mentoring;d.vera=res.vera;
+    capByYear[cy]+=res.redOne;
+    dealsBefore++;
+  });
+  // copy back
+  sorted.forEach(function(s){var d=DEALS.find(function(x){return x.id===s.id;});if(d)Object.assign(d,{gross:s.gross,redOne:s.redOne,mentoring:s.mentoring,vera:s.vera});});
+}
 
-  // format date
-  var closeDate=new Date(closeDateStr+"T12:00:00");
-  var months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  var dateDisp=months[closeDate.getMonth()]+" "+closeDate.getDate()+", "+closeDate.getFullYear();
+/* ── OVERVIEW ── */
+function renderOverview(){
+  recalcAll();
+  var total=DEALS.length;
+  var totalVol=DEALS.reduce(function(s,d){return s+parseFloat(d.price||0);},0);
+  var totalGross=DEALS.reduce(function(s,d){return s+(d.gross||0);},0);
+  var totalVera=DEALS.reduce(function(s,d){return s+(d.vera||0);},0);
+  var totalRedOne=DEALS.reduce(function(s,d){return s+(d.redOne||0);},0);
+  var totalMent=DEALS.reduce(function(s,d){return s+(d.mentoring||0);},0);
 
-  // render result
-  document.getElementById("r-client").textContent=client;
-  document.getElementById("r-date").textContent="Est. close: "+dateDisp;
-  document.getElementById("r-vera").textContent=fmt(vera);
-  document.getElementById("r-pct").textContent=veraPct+"% of gross commission";
-  document.getElementById("r-gross").textContent="Gross: "+fmt(gross);
+  // by type
+  var typeCounts={};
+  DTYPES.forEach(function(dt){typeCounts[dt.id]=DEALS.filter(function(d){return d.type===dt.id;}).length;});
 
-  // phase badge
-  var badgeColor=capMet?"#27ae60":"#c47f00";
-  document.getElementById("r-phase-badge").innerHTML='<span class="phase-badge" style="background:'+badgeColor+'22;color:'+badgeColor+'">'+phase+'</span>';
+  // top builder
+  var bCount={};
+  DEALS.filter(function(d){return d.type==="newbuild"&&d.builder;}).forEach(function(d){bCount[d.builder]=(bCount[d.builder]||0)+1;});
+  var topBuilder=Object.keys(bCount).sort(function(a,b){return bCount[b]-bCount[a];})[0]||"—";
 
-  // breakdown rows
-  var rows=[
-    {icon:"💰",bg:"#fff8e8",label:"Gross Commission",sub:"Sale price "+fmt(price)+" × "+rate+"%",amt:fmt(gross),cls:""},
-    {icon:"🏢",bg:"#ffebee",label:"RedOne Brokerage",sub:Math.round(redOnePct*100)+"% cut"+(capPaidSoFar>0?" · $"+capPaidSoFar.toLocaleString()+" already paid":""),amt:"-"+fmt(redOneAmt),cls:"minus"},
-  ];
-  if(inMentoring){
-    rows.push({icon:"👩‍🏫",bg:"#fff3e0",label:"Mentoring Program",sub:mentLabel,amt:"-"+fmt(mentAmt),cls:"minus"});
+  // current year
+  var curCY=getCapYear(null);
+  var curYearDeals=DEALS.filter(function(d){return getCapYear(d.closeDate)===curCY;});
+  var curYearVera=curYearDeals.reduce(function(s,d){return s+(d.vera||0);},0);
+  var curYearRedOne=curYearDeals.reduce(function(s,d){return s+(d.redOne||0);},0);
+  var capPct=Math.min(100,Math.round(curYearRedOne/CFG.capLimit*100));
+
+  // recent 3 deals
+  var recent=DEALS.slice().sort(function(a,b){return b.closeDate.localeCompare(a.closeDate);}).slice(0,3);
+
+  var html='';
+
+  // greeting
+  html+='<div style="background:linear-gradient(135deg,#fffaf0,#fff8e8);border:1px solid #e8d8b0;border-radius:14px;padding:16px;margin-bottom:14px">'
+    +'<div style="font-size:17px;font-weight:700;color:#b06a00">Vera\'s Profit Dashboard 💰</div>'
+    +'<div style="font-size:12px;color:#a08060;margin-top:3px">Track every deal · See every dollar</div>'
+    +'<button class="gbtn" style="margin-top:12px" onclick="openAddDeal()">+ Record Closed Deal</button>'
+    +'</div>';
+
+  // all-time stats
+  html+='<div class="section">📊 All-Time Stats</div>';
+  html+='<div class="g4">'
+    +'<div class="stat"><div class="sn">'+total+'</div><div class="sl">Deals Closed</div></div>'
+    +'<div class="stat"><div class="sn">'+fmtM(totalVol)+'</div><div class="sl">Total Volume</div></div>'
+    +'<div class="stat"><div class="sn">'+fmtK(totalVera)+'</div><div class="sl">Total Income</div></div>'
+    +'<div class="stat"><div class="sn">'+fmtK(totalGross)+'</div><div class="sl">Gross Comm.</div></div>'
+    +'</div>';
+
+  // commission split bar
+  if(total){
+    html+='<div class="box mb10">'
+      +'<div class="rowsb mb8"><div style="font-size:13px;font-weight:700">All-Time Commission Split</div><div style="font-size:12px;color:var(--muted)">Gross '+fmt(totalGross)+'</div></div>'
+      +'<div class="pbar-track">';
+    if(totalGross>0){
+      html+='<div class="pbar-seg" style="width:'+Math.round(totalRedOne/totalGross*100)+'%;background:#ef9a9a"></div>';
+      html+='<div class="pbar-seg" style="width:'+Math.round(totalMent/totalGross*100)+'%;background:#ffcc80"></div>';
+      html+='<div class="pbar-seg" style="width:'+Math.round(totalVera/totalGross*100)+'%;background:#a5d6a7"></div>';
+    }
+    html+='</div>'
+      +'<div class="pbar-legend">'
+      +'<div class="pleg"><div class="pleg-dot" style="background:#ef9a9a"></div><span style="color:#c62828">RedOne '+fmt(totalRedOne)+'</span></div>'
+      +'<div class="pleg"><div class="pleg-dot" style="background:#ffcc80"></div><span style="color:#e65100">Mentoring '+fmt(totalMent)+'</span></div>'
+      +'<div class="pleg"><div class="pleg-dot" style="background:#a5d6a7"></div><span style="color:#2e7d32">Vera '+fmt(totalVera)+'</span></div>'
+      +'</div></div>';
   }
-  rows.push({icon:"🏡",bg:"#e8f5e9",label:"Vera's Take-Home",sub:veraPct+"% of gross",amt:fmt(vera),cls:"plus"});
 
-  document.getElementById("r-breakdown").innerHTML=rows.map(function(r){
-    return'<div class="brow">'
-      +'<div class="brow-left">'
-      +'<div class="brow-icon" style="background:'+r.bg+'">'+r.icon+'</div>'
-      +'<div><div class="brow-label">'+r.label+'</div><div class="brow-sub">'+r.sub+'</div></div>'
-      +'</div>'
-      +'<div class="brow-amt '+r.cls+'">'+r.amt+'</div>'
+  // current year
+  html+='<div class="section">📆 Current Year (Mar '+curCY+' – Feb '+(curCY+1)+')</div>';
+  html+='<div class="g3">'
+    +'<div class="stat"><div class="sn">'+curYearDeals.length+'</div><div class="sl">Deals</div></div>'
+    +'<div class="stat"><div class="sn">'+fmtK(curYearVera)+'</div><div class="sl">Income</div></div>'
+    +'<div class="stat"><div class="sn">'+fmtK(curYearRedOne)+' / '+fmtK(CFG.capLimit)+'</div><div class="sl">RedOne Cap</div></div>'
+    +'</div>';
+
+  // cap progress
+  html+='<div class="box mb10">'
+    +'<div class="rowsb mb6"><div style="font-size:13px;font-weight:600">RedOne Cap Progress</div>'
+    +'<div style="font-size:12px;color:'+(capPct>=100?'#2e7d32':'#c47f00')+'">'+capPct+'%'+(capPct>=100?' ✅ Met!':'')+'</div></div>'
+    +'<div style="height:10px;background:#f0ebe0;border-radius:5px;overflow:hidden"><div style="height:10px;background:'+(capPct>=100?'#a5d6a7':'#f0d080')+';width:'+capPct+'%;border-radius:5px;transition:width .3s"></div></div>'
+    +'<div style="font-size:11px;color:var(--muted);margin-top:5px">'+fmt(curYearRedOne)+' paid of '+fmt(CFG.capLimit)+' cap '+(capPct>=100?'— RedOne = $0 for rest of year!':'— '+fmt(CFG.capLimit-curYearRedOne)+' remaining')+'</div>'
+    +'</div>';
+
+  // deal type breakdown
+  if(total){
+    html+='<div class="section">📋 Deal Types</div><div class="box">';
+    DTYPES.forEach(function(dt){
+      var cnt=typeCounts[dt.id];if(!cnt)return;
+      var vol=DEALS.filter(function(d){return d.type===dt.id;}).reduce(function(s,d){return s+parseFloat(d.price||0);},0);
+      var inc=DEALS.filter(function(d){return d.type===dt.id;}).reduce(function(s,d){return s+(d.vera||0);},0);
+      html+='<div class="drow">'
+        +'<div class="dtype-icon" style="background:'+dt.color+'22">'+dt.icon+'</div>'
+        +'<div class="dinfo"><div class="dname">'+dt.label+'</div>'
+        +'<div class="dsub">'+cnt+' deal'+(cnt!==1?'s':'')+' · Vol: '+fmtK(vol)+'</div></div>'
+        +'<div class="damts"><div class="dvera">'+fmtK(inc)+'</div><div class="dgross">income</div></div>'
+        +'</div>';
+    });
+    html+='</div>';
+  }
+
+  // top builder
+  if(Object.keys(bCount).length){
+    html+='<div class="section">🏗️ Builder Performance</div><div class="box">';
+    Object.keys(bCount).sort(function(a,b){return bCount[b]-bCount[a];}).forEach(function(b){
+      var bDeals=DEALS.filter(function(d){return d.builder===b;});
+      var bVol=bDeals.reduce(function(s,d){return s+parseFloat(d.price||0);},0);
+      var bInc=bDeals.reduce(function(s,d){return s+(d.vera||0);},0);
+      html+='<div class="drow">'
+        +'<div class="dtype-icon" style="background:#1565c022">🏗️</div>'
+        +'<div class="dinfo"><div class="dname">'+esc(b)+'</div>'
+        +'<div class="dsub">'+bCount[b]+' deal'+(bCount[b]!==1?'s':'')+' · Vol: '+fmtK(bVol)+'</div></div>'
+        +'<div class="damts"><div class="dvera">'+fmtK(bInc)+'</div><div class="dgross">income</div></div>'
+        +'</div>';
+    });
+    html+='</div>';
+  }
+
+  // recent deals
+  if(recent.length){
+    html+='<div class="section">🕐 Recent Deals</div>';
+    html+=recent.map(function(d){return dealRow(d,true);}).join("");
+  }
+
+  if(!total){
+    html+='<div class="box" style="text-align:center;padding:32px 16px">'
+      +'<div style="font-size:32px">🏡</div>'
+      +'<div style="font-size:15px;font-weight:700;color:var(--gold);margin-top:10px">No deals yet!</div>'
+      +'<div style="font-size:13px;color:var(--muted);margin-top:6px;margin-bottom:16px">Record your first closed deal to start tracking your income.</div>'
+      +'<button class="gbtn" onclick="openAddDeal()">+ Record First Deal</button>'
       +'</div>';
-  }).join("");
+  }
 
-  // cap info box
-  var capHtml="";
-  if(capMet){
-    capHtml='<div class="cap-box">✅ RedOne cap of '+fmt(capLimit)+' is met for this deal! RedOne takes $0 from this commission.</div>';
+  document.getElementById("poverview").innerHTML=html;
+  if(DEAL_OPEN)renderAddForm("poverview");
+}
+
+/* ── ALL DEALS ── */
+function renderDeals(){
+  recalcAll();
+  var years=getYears();
+  var builders=getBuilders();
+
+  var filtered=DEALS.filter(function(d){
+    if(DEAL_FILTER.year!=="all"&&getCapYear(d.closeDate)!=DEAL_FILTER.year)return false;
+    if(DEAL_FILTER.type!=="all"&&d.type!==DEAL_FILTER.type)return false;
+    if(DEAL_FILTER.builder!=="all"&&d.builder!==DEAL_FILTER.builder)return false;
+    return true;
+  }).sort(function(a,b){return b.closeDate.localeCompare(a.closeDate);});
+
+  var yearBtns=['<button class="fbtn'+(DEAL_FILTER.year==="all"?" on":"")+'" onclick="setFilter(\'year\',\'all\')">All Years</button>']
+    .concat(years.map(function(y){return'<button class="fbtn'+(DEAL_FILTER.year==y?" on":"")+'" onclick="setFilter(\'year\','+y+')">'+y+'-'+(y+1)+'</button>';})).join("");
+  var typeBtns=['<button class="fbtn'+(DEAL_FILTER.type==="all"?" on":"")+'" onclick="setFilter(\'type\',\'all\')">All Types</button>']
+    .concat(DTYPES.map(function(dt){var cnt=DEALS.filter(function(d){return d.type===dt.id;}).length;if(!cnt)return"";return'<button class="fbtn'+(DEAL_FILTER.type===dt.id?" on":"")+'" onclick="setFilter(\'type\',\''+dt.id+'\')">'+dt.icon+' '+dt.label.split(" ").slice(1).join(" ")+'</button>';})).join("");
+  var bldBtns=builders.length?['<button class="fbtn'+(DEAL_FILTER.builder==="all"?" on":"")+'" onclick="setFilter(\'builder\',\'all\')">All Builders</button>']
+    .concat(builders.map(function(b){return'<button class="fbtn'+(DEAL_FILTER.builder===b?" on":"")+'" onclick="setFilter(\'builder\',\''+esc(b)+'\')">'+esc(b)+'</button>';})).join(""):"";
+
+  var filteredVera=filtered.reduce(function(s,d){return s+(d.vera||0);},0);
+  var filteredVol=filtered.reduce(function(s,d){return s+parseFloat(d.price||0);},0);
+
+  var html='<div class="rowsb mb14"><div class="ptitle">🗂️ All Deals</div><button class="gbtn" onclick="openAddDeal()">+ Add Deal</button></div>';
+  html+='<div class="filter-row">'+yearBtns+'</div>';
+  html+='<div class="filter-row">'+typeBtns+'</div>';
+  if(bldBtns)html+='<div class="filter-row">'+bldBtns+'</div>';
+  if(filtered.length){
+    html+='<div class="box blue mb10"><div class="rowsb"><div><span style="font-size:13px;font-weight:700">'+filtered.length+' deals</span><span style="font-size:12px;color:var(--muted);margin-left:8px">Vol: '+fmtK(filteredVol)+'</span></div><span style="font-size:15px;font-weight:700;color:var(--green)">'+fmt(filteredVera)+' income</span></div></div>';
+    html+=filtered.map(function(d){return dealRow(d,false);}).join("");
   } else {
-    var leftOnCap=capLimit-capAfter;
-    capHtml='<div class="cap-box warn">📊 RedOne cap: '+fmt(capAfter)+' paid of '+fmt(capLimit)+'. <strong>'+fmt(leftOnCap)+' remaining</strong> before cap is met (resets March 1st).</div>';
+    html+='<div class="empty">No deals match this filter</div>';
   }
-  document.getElementById("r-capinfo").innerHTML=capHtml;
-
-  // bar chart
-  var redPct=Math.round(redOneAmt/gross*100);
-  var mentPctBar=Math.round(mentAmt/gross*100);
-  var veraPctBar=100-redPct-mentPctBar;
-  document.getElementById("r-bar").innerHTML=
-    (redPct?'<div class="pbar-seg" style="width:'+redPct+'%;background:#ef9a9a"></div>':"")
-    +(mentPctBar?'<div class="pbar-seg" style="width:'+mentPctBar+'%;background:#ffcc80"></div>':"")
-    +'<div class="pbar-seg" style="width:'+veraPctBar+'%;background:#a5d6a7"></div>';
-  var legendItems=[];
-  if(redPct)legendItems.push('<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:#c62828"><span style="width:10px;height:10px;border-radius:2px;background:#ef9a9a;display:inline-block"></span>RedOne '+redPct+'%</span>');
-  if(mentPctBar)legendItems.push('<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:#e65100"><span style="width:10px;height:10px;border-radius:2px;background:#ffcc80;display:inline-block"></span>Mentoring '+mentPctBar+'%</span>');
-  legendItems.push('<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:#2e7d32"><span style="width:10px;height:10px;border-radius:2px;background:#a5d6a7;display:inline-block"></span>Vera '+veraPctBar+'%</span>');
-  document.getElementById("r-legend").innerHTML=legendItems.join("");
-
-  document.getElementById("result").style.display="block";
-  document.getElementById("result").scrollIntoView({behavior:"smooth",block:"start"});
-
-  // save to history
-  history.unshift({client:client,price:price,rate:rate,date:dateDisp,vera:vera,gross:gross});
-  if(history.length>10)history.pop();
-  try{localStorage.setItem("vera_calc_hist",JSON.stringify(history));}catch(e){}
-  renderHistory();
+  document.getElementById("pdeals").innerHTML=html;
+  if(DEAL_OPEN)renderAddForm("pdeals");
 }
 
-function renderHistory(){
-  if(!history.length){document.getElementById("hist-card").style.display="none";return;}
-  document.getElementById("hist-card").style.display="block";
-  document.getElementById("hist-list").innerHTML=history.map(function(h){
-    return'<div class="hist-item">'
-      +'<div><div class="hist-name">'+h.client+'</div>'
-      +'<div class="hist-detail">'+h.date+' · $'+Number(h.price).toLocaleString()+' @ '+h.rate+'%</div></div>'
-      +'<div class="hist-amt">'+fmt(h.vera)+'</div>'
+/* ── BY YEAR ── */
+function renderByYear(){
+  recalcAll();
+  var years=getYears();
+  var html='<div class="ptitle mb14">📆 By Year</div>';
+  if(!years.length){html+='<div class="empty">No deals recorded yet</div>';document.getElementById("pbyyear").innerHTML=html;return;}
+  years.sort(function(a,b){return b-a;}).forEach(function(cy){
+    var yDeals=DEALS.filter(function(d){return getCapYear(d.closeDate)===cy;}).sort(function(a,b){return b.closeDate.localeCompare(a.closeDate);});
+    var yVera=yDeals.reduce(function(s,d){return s+(d.vera||0);},0);
+    var yGross=yDeals.reduce(function(s,d){return s+(d.gross||0);},0);
+    var yRedOne=yDeals.reduce(function(s,d){return s+(d.redOne||0);},0);
+    var yMent=yDeals.reduce(function(s,d){return s+(d.mentoring||0);},0);
+    var yVol=yDeals.reduce(function(s,d){return s+parseFloat(d.price||0);},0);
+    var capMet=yRedOne>=CFG.capLimit;
+    // by type counts
+    var typeSummary=DTYPES.map(function(dt){var c=yDeals.filter(function(d){return d.type===dt.id;}).length;return c?dt.icon+" "+c+" "+dt.label.split(" ").slice(1).join(" "):null;}).filter(Boolean).join(" · ");
+    // top builder
+    var bCount={};yDeals.filter(function(d){return d.builder;}).forEach(function(d){bCount[d.builder]=(bCount[d.builder]||0)+1;});
+    var topB=Object.keys(bCount).sort(function(a,b){return bCount[b]-bCount[a];})[0];
+
+    html+='<div class="box mb10">';
+    html+='<div class="year-header"><div><div class="year-title">📆 '+cy+' – '+(cy+1)+' <span style="font-size:11px;color:var(--muted)">(Mar–Feb)</span></div>'
+      +'<div style="font-size:12px;color:var(--muted);margin-top:3px">'+yDeals.length+' deals · Vol: '+fmtM(yVol)+'</div></div>'
+      +'<div class="year-income"><div class="year-income-lbl">Take-Home</div><div class="year-income-amt">'+fmt(yVera)+'</div></div></div>';
+
+    // summary grid
+    html+='<div class="g3" style="margin-bottom:10px">'
+      +'<div style="background:#f5f2ec;border-radius:10px;padding:10px;text-align:center"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:3px">Gross</div><div style="font-size:16px;font-weight:700">'+fmtK(yGross)+'</div></div>'
+      +'<div style="background:#ffebee;border-radius:10px;padding:10px;text-align:center"><div style="font-size:10px;color:#c62828;text-transform:uppercase;margin-bottom:3px">RedOne</div><div style="font-size:16px;font-weight:700;color:#c62828">-'+fmtK(yRedOne)+'</div>'+(capMet?'<div style="font-size:9px;color:#2e7d32">✅ Cap met</div>':'')+'</div>'
+      +'<div style="background:#fff8e8;border-radius:10px;padding:10px;text-align:center"><div style="font-size:10px;color:#e65100;text-transform:uppercase;margin-bottom:3px">Mentoring</div><div style="font-size:16px;font-weight:700;color:#e65100">-'+fmtK(yMent)+'</div></div>'
       +'</div>';
-  }).join("");
+
+    if(typeSummary)html+='<div style="font-size:11px;color:var(--muted);margin-bottom:6px">'+typeSummary+'</div>';
+    if(topB)html+='<div style="font-size:11px;color:var(--muted);margin-bottom:10px">🏗️ Top builder: <strong>'+esc(topB)+'</strong> ('+bCount[topB]+' deals)</div>';
+
+    // progress bar
+    if(yGross>0){
+      html+='<div class="pbar-track" style="margin-bottom:6px">'
+        +'<div class="pbar-seg" style="width:'+Math.round(yRedOne/yGross*100)+'%;background:#ef9a9a"></div>'
+        +'<div class="pbar-seg" style="width:'+Math.round(yMent/yGross*100)+'%;background:#ffcc80"></div>'
+        +'<div class="pbar-seg" style="width:'+Math.round(yVera/yGross*100)+'%;background:#a5d6a7"></div>'
+        +'</div>'
+        +'<div class="pbar-legend">'
+        +'<div class="pleg"><div class="pleg-dot" style="background:#ef9a9a"></div><span style="color:#c62828">RedOne '+Math.round(yRedOne/yGross*100)+'%</span></div>'
+        +'<div class="pleg"><div class="pleg-dot" style="background:#ffcc80"></div><span style="color:#e65100">Mentoring '+Math.round(yMent/yGross*100)+'%</span></div>'
+        +'<div class="pleg"><div class="pleg-dot" style="background:#a5d6a7"></div><span style="color:#2e7d32">Vera '+Math.round(yVera/yGross*100)+'%</span></div>'
+        +'</div>';
+    }
+
+    // deals list
+    html+='<div style="margin-top:12px;border-top:1px solid var(--bdr);padding-top:4px">';
+    yDeals.forEach(function(d){html+=dealRow(d,false);});
+    html+='</div></div>';
+  });
+  document.getElementById("pbyyear").innerHTML=html;
 }
 
-function clearHistory(){
-  history=[];
-  try{localStorage.removeItem("vera_calc_hist");}catch(e){}
-  document.getElementById("hist-card").style.display="none";
+/* ── DEAL ROW ── */
+function dealRow(d,compact){
+  var dt=dtypeMeta(d.type);
+  var rate=parseFloat(d.commRate)||CFG.commRate;
+  var party=d.type==="newbuild"?d.builder:d.referral;
+  return'<div class="drow">'
+    +'<div class="dtype-icon" style="background:'+dt.color+'22">'+dt.icon+'</div>'
+    +'<div class="dinfo">'
+    +'<div class="dname">'+esc(d.client||"Unknown")+'</div>'
+    +'<div class="dsub">'+fmtDate(d.closeDate)+' · '+esc(dt.label.split(" ").slice(1).join(" "))+(party?' · '+esc(party):"")+(compact?"":'<br/>Sale: $'+Number(d.price||0).toLocaleString()+' @ '+rate+'%')+'</div>'
+    +(d.notes&&!compact?'<div class="dsub" style="font-style:italic">'+esc(d.notes)+'</div>':"")
+    +'</div>'
+    +'<div class="damts">'
+    +'<div class="dvera">'+fmt(d.vera||0)+'</div>'
+    +'<div class="dgross">'+fmtK(d.gross||0)+' gross</div>'
+    +'</div>'
+    +(!compact?'<button class="xbtn" onclick="deleteDeal(\''+d.id+'\')">&#10005;</button>':"")
+    +'</div>';
 }
 
-renderHistory();
+/* ── ADD DEAL FORM ── */
+function openAddDeal(){
+  DEAL_OPEN=true;DEAL_EDITING=null;
+  ND={client:"",clientCustom:"",type:"newbuild",builder:"",builderCustom:"",referral:"",price:"",commRate:"",closeDate:todayStr(),notes:""};
+  if(ACTIVE==="overview")renderOverview();
+  else if(ACTIVE==="deals")renderDeals();
+  // scroll to form
+  setTimeout(function(){var f=document.getElementById("deal-add-form");if(f)f.scrollIntoView({behavior:"smooth",block:"start"});},100);
+}
+
+function renderAddForm(panelId){
+  var el=document.getElementById("deal-add-form");
+  if(!el){
+    var wrap=document.createElement("div");
+    wrap.id="deal-add-form";
+    document.getElementById(panelId).prepend(wrap);
+    el=wrap;
+  }
+  var dt=dtypeMeta(ND.type);
+  var isNewBuild=ND.type==="newbuild";
+  var clientOpts='<option value="">-- Pick existing client --</option>'
+    +CFG.clients.map(function(c){return'<option value="'+esc(c)+'"'+(ND.client===c?" selected":"")+'>'+esc(c)+'</option>';}).join("")
+    +'<option value="__custom__"'+(ND.client==="__custom__"?" selected":"")+'>+ Type new name</option>';
+  var builderOpts='<option value="">-- Pick builder --</option>'
+    +CFG.builders.map(function(b){return'<option value="'+esc(b)+'"'+(ND.builder===b?" selected":"")+'>'+esc(b)+'</option>';}).join("")
+    +'<option value="__custom__"'+(ND.builder==="__custom__"?" selected":"")+'>+ Type new name</option>';
+  var typeButtons=DTYPES.map(function(t){return'<button class="dtype-btn'+(ND.type===t.id?" on":"")+'" onclick="setND(\'type\',\''+t.id+'\')">'+t.label+'</button>';}).join("");
+
+  el.innerHTML='<div class="box hi mb10" style="border-color:var(--gold)">'
+    +'<div class="rowsb mb14"><div style="font-size:15px;font-weight:700;color:var(--gold)">📝 Record Closed Deal</div><button class="xbtn" onclick="DEAL_OPEN=false;re()">&#10005;</button></div>'
+
+    +'<div class="field"><div class="lbl">Deal Type</div><div class="dtype-row">'+typeButtons+'</div></div>'
+
+    +'<div class="field"><div class="lbl">Client</div>'
+    +'<select class="inp mb8" onchange="setND(\'client\',this.value)">'+clientOpts+'</select>'
+    +(ND.client==="__custom__"?'<input class="inp" placeholder="Type client name" value="'+esc(ND.clientCustom)+'" oninput="ND.clientCustom=this.value"/>':"")
+    +'</div>'
+
+    +(isNewBuild
+      ?'<div class="field"><div class="lbl">Builder</div>'
+       +'<select class="inp mb8" onchange="setND(\'builder\',this.value)">'+builderOpts+'</select>'
+       +(ND.builder==="__custom__"?'<input class="inp" placeholder="Type builder name" value="'+esc(ND.builderCustom)+'" oninput="ND.builderCustom=this.value"/>':"")
+       +'</div>'
+      :'<div class="field"><div class="lbl">Agent / Referral Source (optional)</div>'
+       +'<input class="inp" placeholder="e.g. John Smith Realty" value="'+esc(ND.referral)+'" oninput="ND.referral=this.value"/>'
+       +'</div>')
+
+    +'<div class="g2">'
+    +'<div class="field"><div class="lbl">Sale Price ($)</div><input class="inp" type="number" placeholder="e.g. 280000" value="'+esc(ND.price)+'" oninput="ND.price=this.value" inputmode="numeric"/></div>'
+    +'<div class="field"><div class="lbl">Commission Rate (%)</div><input class="inp" type="number" placeholder="Default '+CFG.commRate+'%" value="'+esc(ND.commRate)+'" oninput="ND.commRate=this.value" step="0.25"/></div>'
+    +'</div>'
+
+    +'<div class="field"><div class="lbl">Close Date</div><input class="inp" type="date" value="'+esc(ND.closeDate)+'" oninput="ND.closeDate=this.value"/></div>'
+
+    +'<div class="field"><div class="lbl">Notes (optional)</div><textarea class="inp" rows="2" placeholder="Any notes about this deal..." oninput="ND.notes=this.value">'+esc(ND.notes)+'</textarea></div>'
+
+    +'<div class="row"><button class="gbtn" onclick="saveDeal()">Save Deal</button><button class="sbtn" onclick="DEAL_OPEN=false;re()">Cancel</button></div>'
+    +'</div>';
+}
+
+function setND(key,val){
+  ND[key]=val;
+  if(ACTIVE==="overview")renderOverview();
+  else if(ACTIVE==="deals")renderDeals();
+}
+
+function re(){
+  if(ACTIVE==="overview")renderOverview();
+  else if(ACTIVE==="deals")renderDeals();
+  else if(ACTIVE==="byyear")renderByYear();
+}
+
+function saveDeal(){
+  var client=ND.client==="__custom__"?ND.clientCustom.trim():ND.client;
+  if(!client){toast("Please enter a client name");return;}
+  var price=parseFloat(ND.price);
+  if(!price||price<=0){toast("Please enter a valid sale price");return;}
+  if(!ND.closeDate){toast("Please select a close date");return;}
+  var builder=ND.type==="newbuild"?(ND.builder==="__custom__"?ND.builderCustom.trim():ND.builder):"";
+  var deal={
+    id:"d"+Date.now(),
+    client:client,
+    type:ND.type,
+    builder:builder,
+    referral:ND.referral,
+    price:price,
+    commRate:ND.commRate||CFG.commRate,
+    closeDate:ND.closeDate,
+    notes:ND.notes,
+    gross:0,redOne:0,mentoring:0,vera:0
+  };
+  DEALS.push(deal);
+  CFG.dealsCompleted++;
+  DEAL_OPEN=false;
+  save();recalcAll();
+  toast("Deal saved! 🎉");
+  if(ACTIVE==="overview")renderOverview();
+  else if(ACTIVE==="deals")renderDeals();
+  else if(ACTIVE==="byyear")renderByYear();
+}
+
+function deleteDeal(id){
+  if(!confirm("Delete this deal?"))return;
+  DEALS=DEALS.filter(function(d){return d.id!==id;});
+  save();recalcAll();
+  toast("Deal deleted");re();
+}
+
+function setFilter(key,val){
+  DEAL_FILTER[key]=val;renderDeals();
+}
+
+/* ── SETTINGS ── */
+function renderSettings(){
+  var html='<div class="ptitle mb14">⚙️ Settings</div>';
+  html+='<div class="box mb10">'
+    +'<div class="section" style="margin-top:0">Commission Structure</div>'
+    +settingRow("Commission Rate (%)","s-rate",CFG.commRate,"CFG.commRate=parseFloat(this.value)||3")
+    +settingRow("RedOne Cut (%)","s-redone",CFG.redOnePct,"CFG.redOnePct=parseFloat(this.value)||30")
+    +settingRow("RedOne Annual Cap ($)","s-cap",CFG.capLimit,"CFG.capLimit=parseFloat(this.value)||6000")
+    +settingRow("Mentoring — first 6 deals (%)","s-ment1",CFG.ment1Pct,"CFG.ment1Pct=parseFloat(this.value)||20")
+    +settingRow("Mentoring — after 6 deals (%)","s-ment2",CFG.ment2Pct,"CFG.ment2Pct=parseFloat(this.value)||10")
+    +'<div style="padding:10px 0;border-bottom:1px solid var(--bdr)">'
+    +'<div class="lbl">In Mentoring Program?</div>'
+    +'<div class="row mt8">'
+    +'<button class="sbtn'+(CFG.inMentoring?" on":"")+'" onclick="CFG.inMentoring=true;save();renderSettings()">Yes</button>'
+    +'<button class="sbtn'+(!CFG.inMentoring?" on":"")+'" onclick="CFG.inMentoring=false;save();renderSettings()">No</button>'
+    +'</div></div>'
+    +settingRow("Deals Completed So Far","s-deals",CFG.dealsCompleted,"CFG.dealsCompleted=parseInt(this.value)||0")
+    +'</div>';
+
+  // manage clients
+  html+='<div class="box mb10">'
+    +'<div class="section" style="margin-top:0">Client Names (for dropdown)</div>'
+    +CFG.clients.map(function(c,i){return'<div class="rowsb" style="padding:6px 0;border-bottom:1px solid var(--bdr)"><span style="font-size:13px">'+esc(c)+'</span><button class="xbtn" onclick="CFG.clients.splice('+i+',1);save();renderSettings()">&#10005;</button></div>';}).join("")
+    +'<div class="row mt10"><input class="inp" id="add-client" placeholder="Add client name" style="flex:1"/><button class="sbtn" onclick="addListItem(\'clients\',\'add-client\')">Add</button></div>'
+    +'</div>';
+
+  // manage builders
+  html+='<div class="box mb10">'
+    +'<div class="section" style="margin-top:0">Builder Names (for dropdown)</div>'
+    +CFG.builders.map(function(b,i){return'<div class="rowsb" style="padding:6px 0;border-bottom:1px solid var(--bdr)"><span style="font-size:13px">'+esc(b)+'</span><button class="xbtn" onclick="CFG.builders.splice('+i+',1);save();renderSettings()">&#10005;</button></div>';}).join("")
+    +'<div class="row mt10"><input class="inp" id="add-builder" placeholder="Add builder name" style="flex:1"/><button class="sbtn" onclick="addListItem(\'builders\',\'add-builder\')">Add</button></div>'
+    +'</div>';
+
+  html+='<button class="gbtn" style="width:100%" onclick="save();recalcAll();renderOverview();toast(\'Settings saved ✅\')">Save & Recalculate All Deals</button>';
+  document.getElementById("psettings").innerHTML=html;
+}
+
+function settingRow(label,id,val,onchange){
+  return'<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--bdr)">'
+    +'<span style="font-size:13px">'+label+'</span>'
+    +'<input id="'+id+'" type="number" step="any" value="'+val+'" oninput="'+onchange+'" style="background:#f5f2ec;border:1px solid var(--bdr2);border-radius:6px;padding:5px 8px;font-size:13px;width:80px;text-align:center;outline:none"/>'
+    +'</div>';
+}
+function addListItem(list,inputId){
+  var el=document.getElementById(inputId);
+  var v=el?el.value.trim():"";
+  if(!v)return;
+  CFG[list].push(v);save();renderSettings();
+}
+
+/* ── utils ── */
+function getYears(){
+  var ys={};DEALS.forEach(function(d){ys[getCapYear(d.closeDate)]=1;});return Object.keys(ys).map(Number);
+}
+function getBuilders(){
+  var bs={};DEALS.filter(function(d){return d.builder;}).forEach(function(d){bs[d.builder]=1;});return Object.keys(bs);
+}
+
+/* ── save / load ── */
+function save(){
+  try{localStorage.setItem("vpd_deals",JSON.stringify(DEALS));}catch(e){}
+  try{localStorage.setItem("vpd_cfg",JSON.stringify(CFG));}catch(e){}
+}
+function load(){
+  try{var a=localStorage.getItem("vpd_deals");if(a)DEALS=JSON.parse(a);}catch(e){}
+  try{var b=localStorage.getItem("vpd_cfg");if(b)Object.assign(CFG,JSON.parse(b));}catch(e){}
+}
+
+/* ── init ── */
+load();recalcAll();
+renderOverview();renderDeals();renderByYear();renderSettings();
 </script>
 </body>
 </html>
