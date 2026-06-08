@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Vera's Profit Calculator</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--gold:#c47f00;--bg:#f9f6f0;--card:#fff;--bdr:#e8e0d0;--txt:#1a1a1a;--muted:#888;--green:#2e7d32;--red:#c62828;--orange:#e65100}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;padding:0 0 40px}
+input,select{font-family:inherit;font-size:16px}
+button{font-family:inherit;cursor:pointer;touch-action:manipulation}
+
+/* header */
+#hdr{background:linear-gradient(135deg,#fffaf0,#fff8e8 50%,#fffaf0);border-bottom:2px solid #e8d8b0;padding:18px 20px;text-align:center}
+.logo{font-size:20px;font-weight:700;color:#b06a00}
+.sub{font-size:12px;color:#a08060;margin-top:3px}
+
+/* body */
+#wrap{max-width:500px;margin:0 auto;padding:18px 16px}
+
+/* cards */
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+
+/* labels */
+.lbl{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.field{margin-bottom:14px}
+
+/* inputs */
+.inp{background:#f5f2ec;border:1px solid #ddd8cc;border-radius:10px;padding:12px 14px;color:var(--txt);width:100%;outline:none;font-size:16px;transition:border .2s}
+.inp:focus{border-color:var(--gold)}
+.inp::placeholder{color:#bbb}
+
+/* commission rate row */
+.rate-row{display:flex;gap:8px;margin-bottom:14px}
+.rate-btn{flex:1;padding:10px 4px;border-radius:10px;border:1px solid #ddd8cc;background:#f5f2ec;font-size:14px;font-weight:700;color:var(--muted);transition:all .15s}
+.rate-btn.on{background:var(--gold);border-color:var(--gold);color:#fff}
+
+/* calculate button */
+.calc-btn{width:100%;padding:14px;background:var(--gold);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;letter-spacing:.3px;margin-top:4px;box-shadow:0 3px 12px rgba(196,127,0,.3)}
+
+/* result card */
+#result{display:none}
+.res-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+.res-client{font-size:18px;font-weight:700}
+.res-date{font-size:12px;color:var(--muted);margin-top:3px}
+.res-takehome{text-align:right}
+.res-takehome-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.res-takehome-amt{font-size:28px;font-weight:700;color:var(--green)}
+
+/* breakdown rows */
+.brow{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #f0ebe0}
+.brow:last-child{border-bottom:none}
+.brow-left{display:flex;align-items:center;gap:10px}
+.brow-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.brow-label{font-size:13px;font-weight:600}
+.brow-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.brow-amt{font-size:15px;font-weight:700}
+.brow-amt.minus{color:var(--red)}
+.brow-amt.plus{color:var(--green)}
+
+/* phase badge */
+.phase-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:14px}
+
+/* progress bar */
+.pbar-wrap{margin-top:16px}
+.pbar-lbl{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:5px}
+.pbar-track{height:10px;background:#f0ebe0;border-radius:5px;overflow:hidden;display:flex}
+.pbar-seg{height:10px;transition:width .4s}
+
+/* cap info */
+.cap-box{background:#f0faf0;border:1px solid #a5d6a7;border-radius:10px;padding:12px 14px;margin-top:14px;font-size:12px;color:var(--green);line-height:1.6}
+.cap-box.warn{background:#fff8e8;border-color:#ffe082;color:#b06a00}
+
+/* settings toggle */
+.settings-toggle{font-size:12px;color:var(--gold);font-weight:700;background:none;border:none;padding:0;margin-bottom:10px;text-decoration:underline}
+#settings-box{display:none}
+.settings-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0ebe0;font-size:13px}
+.settings-row:last-child{border-bottom:none}
+.settings-val{display:flex;align-items:center;gap:8px}
+.mini-btn{background:#f5f2ec;border:1px solid #ddd8cc;border-radius:6px;padding:3px 10px;font-size:12px;font-weight:700;color:var(--txt)}
+.mini-inp{background:#f5f2ec;border:1px solid #ddd8cc;border-radius:6px;padding:4px 8px;font-size:13px;width:70px;text-align:center;outline:none}
+
+/* history */
+.hist-item{padding:10px 0;border-bottom:1px solid #f0ebe0;display:flex;justify-content:space-between;align-items:center}
+.hist-item:last-child{border-bottom:none}
+.hist-name{font-size:13px;font-weight:600}
+.hist-detail{font-size:11px;color:var(--muted);margin-top:2px}
+.hist-amt{font-size:14px;font-weight:700;color:var(--green)}
+.clear-btn{font-size:11px;color:var(--red);background:none;border:none;padding:0;text-decoration:underline}
+
+@media(max-width:400px){
+  .res-takehome-amt{font-size:22px}
+  .rate-btn{font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<div id="hdr">
+  <div class="logo">💰 Vera's Profit Calculator</div>
+  <div class="sub">Real Estate Commission Breakdown</div>
+</div>
+
+<div id="wrap">
+
+  <!-- INPUT CARD -->
+  <div class="card">
+
+    <button class="settings-toggle" onclick="toggleSettings()">⚙️ Commission Settings</button>
+    <div id="settings-box">
+      <div class="settings-row">
+        <span>Commission Rate</span>
+        <div class="settings-val">
+          <input class="mini-inp" id="s-rate" value="3" type="number" min="1" max="10" step="0.5"/> %
+        </div>
+      </div>
+      <div class="settings-row">
+        <span>RedOne Cut</span>
+        <div class="settings-val">
+          <input class="mini-inp" id="s-redone" value="30" type="number" min="0" max="50"/> %
+        </div>
+      </div>
+      <div class="settings-row">
+        <span>RedOne Annual Cap</span>
+        <div class="settings-val">
+          $ <input class="mini-inp" id="s-cap" value="6000" type="number" min="0" step="500"/>
+        </div>
+      </div>
+      <div class="settings-row">
+        <span>Mentoring (first 6 deals)</span>
+        <div class="settings-val">
+          <input class="mini-inp" id="s-ment1" value="20" type="number" min="0" max="50"/> %
+        </div>
+      </div>
+      <div class="settings-row">
+        <span>Mentoring (after 6 deals)</span>
+        <div class="settings-val">
+          <input class="mini-inp" id="s-ment2" value="10" type="number" min="0" max="50"/> %
+        </div>
+      </div>
+      <div class="settings-row">
+        <span>Cap resets every</span>
+        <div class="settings-val" style="font-size:12px;color:var(--muted)">March 1st</div>
+      </div>
+      <div style="margin-top:10px;margin-bottom:4px">
+        <div class="lbl">In Mentoring Program?</div>
+        <div style="display:flex;gap:8px">
+          <button class="rate-btn on" id="ment-yes" onclick="setMent(true)">Yes</button>
+          <button class="rate-btn" id="ment-no" onclick="setMent(false)">No</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="lbl">Client Name</div>
+      <input class="inp" id="client" placeholder="e.g. Suzel & Husband"/>
+    </div>
+
+    <div class="field">
+      <div class="lbl">Expected Sale Price ($)</div>
+      <input class="inp" id="price" placeholder="e.g. 280000" type="number" inputmode="numeric"/>
+    </div>
+
+    <div class="field">
+      <div class="lbl">Commission Rate</div>
+      <div class="rate-row">
+        <button class="rate-btn" onclick="setRate(2.5,this)">2.5%</button>
+        <button class="rate-btn on" id="rate-3" onclick="setRate(3,this)">3%</button>
+        <button class="rate-btn" onclick="setRate(3.5,this)">3.5%</button>
+        <button class="rate-btn" onclick="setCustomRate(this)">Custom</button>
+      </div>
+      <input class="inp" id="custom-rate" placeholder="Enter custom % e.g. 2.75" style="display:none;margin-top:8px" type="number" step="0.25"/>
+    </div>
+
+    <div class="field">
+      <div class="lbl">Expected Close Date</div>
+      <input class="inp" id="closedate" type="date"/>
+    </div>
+
+    <div class="field">
+      <div class="lbl">Deals Completed So Far This Year</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:4px">
+        <button class="mini-btn" onclick="changeDeal(-1)">−</button>
+        <span id="deal-count" style="font-size:20px;font-weight:700;color:var(--gold);min-width:30px;text-align:center">0</span>
+        <button class="mini-btn" onclick="changeDeal(1)">+</button>
+        <span id="deal-hint" style="font-size:11px;color:var(--muted)">6 more → 10% mentoring</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="lbl">RedOne Cap Paid So Far This Year ($)</div>
+      <input class="inp" id="cappaid" placeholder="e.g. 2000 (leave 0 if none)" type="number" inputmode="numeric" value="0"/>
+    </div>
+
+    <button class="calc-btn" onclick="calculate()">Calculate My Profit 💰</button>
+  </div>
+
+  <!-- RESULT CARD -->
+  <div class="card" id="result">
+    <div class="res-header">
+      <div>
+        <div class="res-client" id="r-client"></div>
+        <div class="res-date" id="r-date"></div>
+      </div>
+      <div class="res-takehome">
+        <div class="res-takehome-lbl">Vera Takes Home</div>
+        <div class="res-takehome-amt" id="r-vera"></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px" id="r-pct"></div>
+      </div>
+    </div>
+
+    <div id="r-phase-badge"></div>
+
+    <div id="r-breakdown"></div>
+
+    <div id="r-capinfo"></div>
+
+    <div class="pbar-wrap">
+      <div class="pbar-lbl">
+        <span>How commission is split</span>
+        <span id="r-gross"></span>
+      </div>
+      <div class="pbar-track" id="r-bar"></div>
+      <div style="display:flex;gap:14px;margin-top:6px;flex-wrap:wrap" id="r-legend"></div>
+    </div>
+  </div>
+
+  <!-- HISTORY CARD -->
+  <div class="card" id="hist-card" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div style="font-size:14px;font-weight:700;color:var(--gold)">📋 Recent Calculations</div>
+      <button class="clear-btn" onclick="clearHistory()">Clear all</button>
+    </div>
+    <div id="hist-list"></div>
+  </div>
+
+</div>
+
+<script>
+var dealCount=0;
+var inMentoring=true;
+var selectedRate=3;
+var history=[];
+
+try{var h=localStorage.getItem("vera_calc_hist");if(h)history=JSON.parse(h);}catch(e){}
+try{var dc=localStorage.getItem("vera_calc_deals");if(dc){dealCount=parseInt(dc)||0;updateDealHint();}}catch(e){}
+try{var im=localStorage.getItem("vera_calc_ment");if(im!==null)inMentoring=im==="true";}catch(e){}
+
+// set default close date to today
+document.getElementById("closedate").value=new Date().toISOString().split("T")[0];
+
+function fmt(n){return"$"+Number(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,",");}
+function fmtK(n){return n>=1000?"$"+(n/1000).toFixed(1)+"k":fmt(n);}
+
+function setRate(r,btn){
+  selectedRate=r;
+  document.querySelectorAll(".rate-btn").forEach(function(b){b.classList.remove("on");});
+  btn.classList.add("on");
+  document.getElementById("custom-rate").style.display="none";
+  document.getElementById("s-rate").value=r;
+}
+function setCustomRate(btn){
+  document.querySelectorAll(".rate-btn").forEach(function(b){b.classList.remove("on");});
+  btn.classList.add("on");
+  document.getElementById("custom-rate").style.display="block";
+  document.getElementById("custom-rate").focus();
+}
+function setMent(val){
+  inMentoring=val;
+  document.getElementById("ment-yes").classList.toggle("on",val);
+  document.getElementById("ment-no").classList.toggle("on",!val);
+  localStorage.setItem("vera_calc_ment",val);
+}
+function toggleSettings(){
+  var b=document.getElementById("settings-box");
+  b.style.display=b.style.display==="block"?"none":"block";
+}
+function changeDeal(n){
+  dealCount=Math.max(0,dealCount+n);
+  document.getElementById("deal-count").textContent=dealCount;
+  updateDealHint();
+  localStorage.setItem("vera_calc_deals",dealCount);
+}
+function updateDealHint(){
+  document.getElementById("deal-count").textContent=dealCount;
+  var hint=document.getElementById("deal-hint");
+  if(!inMentoring)hint.textContent="Not in mentoring program";
+  else if(dealCount<6)hint.textContent=(6-dealCount)+" more deal"+(6-dealCount!==1?"s":"")+" → 10% mentoring";
+  else hint.textContent="✅ 10% mentoring rate active";
+}
+
+function getCapYear(dateStr){
+  var d=dateStr?new Date(dateStr):new Date();
+  var y=d.getFullYear(),m=d.getMonth()+1;
+  return m>=3?y:y-1;
+}
+
+function calculate(){
+  // get inputs
+  var client=document.getElementById("client").value.trim()||"Client";
+  var priceRaw=document.getElementById("price").value.replace(/[^0-9.]/g,"");
+  var price=parseFloat(priceRaw);
+  var closeDateStr=document.getElementById("closedate").value;
+  var capPaidSoFar=parseFloat(document.getElementById("cappaid").value)||0;
+
+  // get rate
+  var customRateEl=document.getElementById("custom-rate");
+  var rate=selectedRate;
+  if(customRateEl.style.display!=="none"&&customRateEl.value){
+    rate=parseFloat(customRateEl.value)||3;
+  }
+
+  // get settings
+  var redOnePct=(parseFloat(document.getElementById("s-redone").value)||30)/100;
+  var capLimit=parseFloat(document.getElementById("s-cap").value)||6000;
+  var ment1Pct=(parseFloat(document.getElementById("s-ment1").value)||20)/100;
+  var ment2Pct=(parseFloat(document.getElementById("s-ment2").value)||10)/100;
+
+  if(!price||price<=0){alert("Please enter a valid sale price");return;}
+  if(!closeDateStr){alert("Please select a close date");return;}
+
+  // calculate
+  var gross=price*(rate/100);
+
+  // RedOne: 30% until cap
+  var redOneAmt=gross*redOnePct;
+  var remaining=capLimit-capPaidSoFar;
+  if(remaining<=0)redOneAmt=0;
+  else if(redOneAmt>remaining)redOneAmt=remaining;
+  var capAfter=capPaidSoFar+redOneAmt;
+  var capMet=capAfter>=capLimit;
+
+  // Mentoring
+  var mentAmt=0;
+  var mentPct=0;
+  var mentLabel="";
+  if(inMentoring){
+    mentPct=dealCount<6?ment1Pct:ment2Pct;
+    mentAmt=gross*mentPct;
+    mentLabel=dealCount<6?"20% (first 6 deals)":"10% (after 6 deals)";
+  }
+
+  var vera=gross-redOneAmt-mentAmt;
+  var veraPct=Math.round(vera/gross*100);
+
+  // phase
+  var phase="";
+  if(inMentoring&&dealCount<6&&!capMet)phase="Phase 1 — Mentoring + RedOne active";
+  else if(inMentoring&&dealCount<6&&capMet)phase="Phase 1B — Mentoring active · RedOne cap met!";
+  else if(inMentoring&&dealCount>=6&&!capMet)phase="Phase 2 — 10% Mentoring + RedOne active";
+  else if(inMentoring&&dealCount>=6&&capMet)phase="Phase 2B — 10% Mentoring · RedOne cap met!";
+  else if(!inMentoring&&!capMet)phase="No Mentoring — RedOne active";
+  else phase="No Mentoring — RedOne cap met!";
+
+  // format date
+  var closeDate=new Date(closeDateStr+"T12:00:00");
+  var months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var dateDisp=months[closeDate.getMonth()]+" "+closeDate.getDate()+", "+closeDate.getFullYear();
+
+  // render result
+  document.getElementById("r-client").textContent=client;
+  document.getElementById("r-date").textContent="Est. close: "+dateDisp;
+  document.getElementById("r-vera").textContent=fmt(vera);
+  document.getElementById("r-pct").textContent=veraPct+"% of gross commission";
+  document.getElementById("r-gross").textContent="Gross: "+fmt(gross);
+
+  // phase badge
+  var badgeColor=capMet?"#27ae60":"#c47f00";
+  document.getElementById("r-phase-badge").innerHTML='<span class="phase-badge" style="background:'+badgeColor+'22;color:'+badgeColor+'">'+phase+'</span>';
+
+  // breakdown rows
+  var rows=[
+    {icon:"💰",bg:"#fff8e8",label:"Gross Commission",sub:"Sale price "+fmt(price)+" × "+rate+"%",amt:fmt(gross),cls:""},
+    {icon:"🏢",bg:"#ffebee",label:"RedOne Brokerage",sub:Math.round(redOnePct*100)+"% cut"+(capPaidSoFar>0?" · $"+capPaidSoFar.toLocaleString()+" already paid":""),amt:"-"+fmt(redOneAmt),cls:"minus"},
+  ];
+  if(inMentoring){
+    rows.push({icon:"👩‍🏫",bg:"#fff3e0",label:"Mentoring Program",sub:mentLabel,amt:"-"+fmt(mentAmt),cls:"minus"});
+  }
+  rows.push({icon:"🏡",bg:"#e8f5e9",label:"Vera's Take-Home",sub:veraPct+"% of gross",amt:fmt(vera),cls:"plus"});
+
+  document.getElementById("r-breakdown").innerHTML=rows.map(function(r){
+    return'<div class="brow">'
+      +'<div class="brow-left">'
+      +'<div class="brow-icon" style="background:'+r.bg+'">'+r.icon+'</div>'
+      +'<div><div class="brow-label">'+r.label+'</div><div class="brow-sub">'+r.sub+'</div></div>'
+      +'</div>'
+      +'<div class="brow-amt '+r.cls+'">'+r.amt+'</div>'
+      +'</div>';
+  }).join("");
+
+  // cap info box
+  var capHtml="";
+  if(capMet){
+    capHtml='<div class="cap-box">✅ RedOne cap of '+fmt(capLimit)+' is met for this deal! RedOne takes $0 from this commission.</div>';
+  } else {
+    var leftOnCap=capLimit-capAfter;
+    capHtml='<div class="cap-box warn">📊 RedOne cap: '+fmt(capAfter)+' paid of '+fmt(capLimit)+'. <strong>'+fmt(leftOnCap)+' remaining</strong> before cap is met (resets March 1st).</div>';
+  }
+  document.getElementById("r-capinfo").innerHTML=capHtml;
+
+  // bar chart
+  var redPct=Math.round(redOneAmt/gross*100);
+  var mentPctBar=Math.round(mentAmt/gross*100);
+  var veraPctBar=100-redPct-mentPctBar;
+  document.getElementById("r-bar").innerHTML=
+    (redPct?'<div class="pbar-seg" style="width:'+redPct+'%;background:#ef9a9a"></div>':"")
+    +(mentPctBar?'<div class="pbar-seg" style="width:'+mentPctBar+'%;background:#ffcc80"></div>':"")
+    +'<div class="pbar-seg" style="width:'+veraPctBar+'%;background:#a5d6a7"></div>';
+  var legendItems=[];
+  if(redPct)legendItems.push('<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:#c62828"><span style="width:10px;height:10px;border-radius:2px;background:#ef9a9a;display:inline-block"></span>RedOne '+redPct+'%</span>');
+  if(mentPctBar)legendItems.push('<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:#e65100"><span style="width:10px;height:10px;border-radius:2px;background:#ffcc80;display:inline-block"></span>Mentoring '+mentPctBar+'%</span>');
+  legendItems.push('<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:#2e7d32"><span style="width:10px;height:10px;border-radius:2px;background:#a5d6a7;display:inline-block"></span>Vera '+veraPctBar+'%</span>');
+  document.getElementById("r-legend").innerHTML=legendItems.join("");
+
+  document.getElementById("result").style.display="block";
+  document.getElementById("result").scrollIntoView({behavior:"smooth",block:"start"});
+
+  // save to history
+  history.unshift({client:client,price:price,rate:rate,date:dateDisp,vera:vera,gross:gross});
+  if(history.length>10)history.pop();
+  try{localStorage.setItem("vera_calc_hist",JSON.stringify(history));}catch(e){}
+  renderHistory();
+}
+
+function renderHistory(){
+  if(!history.length){document.getElementById("hist-card").style.display="none";return;}
+  document.getElementById("hist-card").style.display="block";
+  document.getElementById("hist-list").innerHTML=history.map(function(h){
+    return'<div class="hist-item">'
+      +'<div><div class="hist-name">'+h.client+'</div>'
+      +'<div class="hist-detail">'+h.date+' · $'+Number(h.price).toLocaleString()+' @ '+h.rate+'%</div></div>'
+      +'<div class="hist-amt">'+fmt(h.vera)+'</div>'
+      +'</div>';
+  }).join("");
+}
+
+function clearHistory(){
+  history=[];
+  try{localStorage.removeItem("vera_calc_hist");}catch(e){}
+  document.getElementById("hist-card").style.display="none";
+}
+
+renderHistory();
+</script>
+</body>
+</html>
