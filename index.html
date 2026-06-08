@@ -261,6 +261,8 @@ function renderOverview(){
   var totalVera=DEALS.reduce(function(s,d){return s+(d.vera||0);},0);
   var totalRedOne=DEALS.reduce(function(s,d){return s+(d.redOne||0);},0);
   var totalMent=DEALS.reduce(function(s,d){return s+(d.mentoring||0);},0);
+  var avgGross=total>0?DEALS.reduce(function(s,d){return s+(d.gross||0);},0)/total:0;
+  var avgVera=total>0?totalVera/total:0;
 
   // by type
   var typeCounts={};
