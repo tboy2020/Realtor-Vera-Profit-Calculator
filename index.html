@@ -1055,8 +1055,18 @@ function load(){
 }
 
 /* ── init ── */
-load();recalcAll();
-renderOverview();renderDeals();renderByYear();renderProjection();renderSettings();
+window.onload=function(){
+  try{
+    load();recalcAll();
+    renderOverview();renderDeals();renderByYear();renderProjection();renderSettings();
+  }catch(err){
+    document.getElementById("body").innerHTML='<div style="padding:20px;color:#c62828;font-size:14px;background:#fff;border-radius:12px;margin:20px">'
+      +'<strong>Error loading dashboard:</strong><br/><br/>'+err.message
+      +'<br/><br/>Please clear browser data for this page and reload.'
+      +'</div>';
+    console.error(err);
+  }
+};
 </script>
 </body>
 </html>
