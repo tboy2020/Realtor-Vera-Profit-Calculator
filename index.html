@@ -138,8 +138,8 @@ textarea.inp{resize:vertical}
 
 <div id="body">
   <div id="poverview"  class="panel on"></div>
-  <div id="pdeals"     class="panel"></div>
   <div id="pexpenses"  class="panel"></div>
+  <div id="pdeals"     class="panel"></div>
   <div id="pbyyear"    class="panel"></div>
   <div id="pprojection"class="panel"></div>
   <div id="psettings"  class="panel"></div>
@@ -163,13 +163,7 @@ function chip(color,lbl){return'<span class="chip" style="background:'+color+'22
 var PANEL_IDS={overview:"poverview",deals:"pdeals",byyear:"pbyyear",projection:"pprojection",settings:"psettings"};
 
 /* ── BUSINESS EXPENSES ── */
-function expTotalAll(){
-  return EXPENSES.reduce(function(s,e){return s+(parseFloat(e.amount)||0);},0);
-}
-function expTotalByYear(yr){
-  return EXPENSES.filter(function(e){return !yr||new Date(e.date).getFullYear()===yr;})
-    .reduce(function(s,e){return s+(parseFloat(e.amount)||0);},0);
-}
+function expTotalAll(){return EXPENSES.reduce(function(s,e){return s+(parseFloat(e.amount)||0);},0);}
 function expCatMap(yr){
   var map={};
   EXPENSES.filter(function(e){return !yr||new Date(e.date).getFullYear()===yr;})
@@ -194,99 +188,47 @@ function deleteExpense(id){
   save();renderExpenses();
 }
 function renderExpenses(){
-  var sel=document.getElementById('exp-year-filter');
-  var yr=sel?parseInt(sel.value):new Date().getFullYear();
+  var el=document.getElementById('exp-year-filter');
+  var yr=el?parseInt(el.value):new Date().getFullYear();
   var list=EXPENSES.filter(function(e){return !yr||new Date(e.date).getFullYear()===yr;});
   var totalExp=list.reduce(function(s,e){return s+(parseFloat(e.amount)||0);},0);
-  var veraIncome=DEALS.filter(function(d){
+  var veraInc=DEALS.filter(function(d){
     if(!yr)return true;
-    var dy=d.closedDate?new Date(d.closedDate).getFullYear():0;
-    return dy===yr;
+    return d.closedDate&&new Date(d.closedDate).getFullYear()===yr;
   }).reduce(function(s,d){return s+(d.vera||0);},0);
-  var net=veraIncome-totalExp;
-
+  var net=veraInc-totalExp;
   var allYrs=new Set([new Date().getFullYear()]);
   EXPENSES.forEach(function(e){if(e.date)allYrs.add(new Date(e.date).getFullYear());});
   DEALS.forEach(function(d){if(d.closedDate)allYrs.add(new Date(d.closedDate).getFullYear());});
   var yrOpts=[...allYrs].sort().map(function(y){
     return '<option value="'+y+'"'+(y===yr?' selected':'')+'>'+y+'</option>';
   }).join('');
-
   var catM=expCatMap(yr);
   var maxC=Math.max.apply(null,Object.values(catM).concat([1]));
   var catOpts=EXP_CATS.map(function(c){return '<option>'+c+'</option>';}).join('');
   var today=new Date().toISOString().slice(0,10);
-
-  var inpStyle='width:100%;font-size:13px;padding:8px 10px;border:1.5px solid var(--bdr);border-radius:8px;background:var(--bg);color:var(--fg);box-sizing:border-box;';
-
-  var html='<div class="ptitle mb14">💼 Business Expenses</div>';
-
-  // Year filter
-  html+='<div class="box mb10" style="display:flex;align-items:center;gap:10px;">'
-    +'<label style="font-size:11px;font-weight:700;color:var(--muted);">FILTER YEAR</label>'
-    +'<select id="exp-year-filter" onchange="renderExpenses()" style="'+inpStyle+'width:auto;">'
-    +'<option value="0">All Time</option>'+yrOpts+'</select></div>';
-
-  // Summary pills
-  html+='<div class="g3 mb10">'
-    +'<div class="stat"><div class="sn" style="color:var(--rose)">'+fmtK(totalExp)+'</div><div class="sl">Total Expenses</div></div>'
-    +'<div class="stat"><div class="sn" style="color:var(--green)">'+fmtK(veraIncome)+'</div><div class="sl">Commissions Earned</div></div>'
-    +'<div class="stat"><div class="sn" style="color:'+(net>=0?'var(--green)':'var(--rose)')+'">'+fmtK(net)+'</div>'
-    +'<div class="sl">'+(net>=0?'Net Profit':'Net Loss')+'</div></div>'
-    +'</div>';
-
-  // Category bars
+  var inp='width:100%;font-size:13px;padding:8px 10px;border:1.5px solid var(--bdr);border-radius:8px;background:var(--bg);color:var(--fg);box-sizing:border-box;';
+  var html='<div class="ptitle mb14">&#128188; Business Expenses</div>';
+  html+='<div class="box mb10" style="display:flex;align-items:center;gap:10px;">'+'<label style="font-size:11px;font-weight:700;color:var(--muted);">FILTER YEAR</label>'+'<select id="exp-year-filter" onchange="renderExpenses()" style="'+inp+'width:auto;"><option value="0">All Time</option>'+yrOpts+'</select></div>';
+  html+='<div class="g3 mb10">'+'<div class="stat"><div class="sn" style="color:var(--rose)">'+fmtK(totalExp)+'</div><div class="sl">Total Expenses</div></div>'+'<div class="stat"><div class="sn" style="color:var(--green)">'+fmtK(veraInc)+'</div><div class="sl">Commissions Earned</div></div>'+'<div class="stat"><div class="sn" style="color:'+(net>=0?'var(--green)':'var(--rose)')+'">'+fmtK(net)+'</div><div class="sl">'+(net>=0?'Net Profit':'Net Loss')+'</div></div></div>';
   if(Object.keys(catM).length){
     html+='<div class="box mb10"><div class="section" style="margin-top:0">By Category</div>';
-    Object.entries(catM).sort(function(a,b){return b[1]-a[1];}).forEach(function(pair){
-      var pct=(pair[1]/maxC*100).toFixed(1);
-      html+='<div style="margin-bottom:9px;">'
-        +'<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">'
-        +'<span style="font-weight:600">'+pair[0]+'</span>'
-        +'<span style="color:var(--rose);font-weight:700">'+fmtK(pair[1])+'</span></div>'
-        +'<div style="height:6px;background:rgba(0,0,0,0.08);border-radius:10px;overflow:hidden;">'
-        +'<div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,#8B1A1A,#C94040);border-radius:10px;"></div>'
-        +'</div></div>';
+    Object.entries(catM).sort(function(a,b){return b[1]-a[1];}).forEach(function(p){
+      var pct=(p[1]/maxC*100).toFixed(1);
+      html+='<div style="margin-bottom:9px;"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span style="font-weight:600">'+p[0]+'</span><span style="color:var(--rose);font-weight:700">'+fmtK(p[1])+'</span></div><div style="height:6px;background:rgba(0,0,0,0.08);border-radius:10px;overflow:hidden;"><div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,#8B1A1A,#C94040);border-radius:10px;"></div></div></div>';
     });
     html+='</div>';
   }
-
-  // Add form
-  html+='<div class="box mb10"><div class="section" style="margin-top:0">Log an Expense</div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">'
-    +'<div><div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;">CATEGORY</div>'
-    +'<select id="exp-cat" style="'+inpStyle+'"><option value="">Select…</option>'+catOpts+'</select></div>'
-    +'<div><div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;">DATE</div>'
-    +'<input id="exp-date" type="date" value="'+today+'" style="'+inpStyle+'"></div></div>'
-    +'<div style="margin-bottom:8px;"><div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;">DESCRIPTION</div>'
-    +'<input id="exp-desc" type="text" placeholder="e.g. OBAR dues, Facebook ad…" maxlength="80" style="'+inpStyle+'"></div>'
-    +'<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;">AMOUNT ($)</div>'
-    +'<input id="exp-amount" type="number" inputmode="decimal" placeholder="0.00" style="'+inpStyle+'"></div>'
-    +'<button onclick="addExpense()" style="width:100%;padding:12px;font-size:12px;font-weight:700;letter-spacing:0.08em;'
-    +'background:linear-gradient(135deg,#6B1A1A,#8B2222);color:#F0C840;border:none;border-radius:10px;cursor:pointer;">+ RECORD EXPENSE</button>'
-    +'</div>';
-
-  // Expense list
+  html+='<div class="box mb10"><div class="section" style="margin-top:0">Log an Expense</div>'+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;"><div><div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;">CATEGORY</div><select id="exp-cat" style="'+inp+'"><option value="">Select…</option>'+catOpts+'</select></div><div><div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;">DATE</div><input id="exp-date" type="date" value="'+today+'" style="'+inp+'"></div></div>'+'<div style="margin-bottom:8px;"><div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;">DESCRIPTION</div><input id="exp-desc" type="text" placeholder="e.g. OBAR dues, Facebook ad…" maxlength="80" style="'+inp+'"></div>'+'<div style="margin-bottom:12px;"><div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;">AMOUNT ($)</div><input id="exp-amount" type="number" inputmode="decimal" placeholder="0.00" style="'+inp+'"></div>'+'<button onclick="addExpense()" style="width:100%;padding:12px;font-size:12px;font-weight:700;letter-spacing:0.08em;background:linear-gradient(135deg,#6B1A1A,#8B2222);color:#F0C840;border:none;border-radius:10px;cursor:pointer;">+ RECORD EXPENSE</button></div>';
   html+='<div class="box"><div class="section" style="margin-top:0">Expense Log ('+list.length+' records)</div>';
-  if(!list.length){
-    html+='<div style="text-align:center;padding:24px;font-size:13px;color:var(--muted);font-style:italic;">No expenses yet for this period.</div>';
-  } else {
+  if(!list.length){html+='<div style="text-align:center;padding:24px;font-size:13px;color:var(--muted);font-style:italic;">No expenses recorded yet.</div>';}
+  else{
     list.forEach(function(e){
-      html+='<div style="display:flex;align-items:flex-start;gap:8px;padding:10px 0;border-bottom:1px solid var(--bdr);">'
-        +'<div style="flex:1;min-width:0;">'
-        +'<div style="font-size:13px;font-weight:600;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+e.desc+'</div>'
-        +'<div style="font-size:11px;color:var(--muted);margin-top:2px;">'+e.cat+' · '+e.date+'</div>'
-        +'</div>'
-        +'<div style="font-size:14px;font-weight:700;color:var(--rose);flex-shrink:0;white-space:nowrap;">'+fmtK(parseFloat(e.amount||0))+'</div>'
-        +'<button onclick="deleteExpense(\''+e.id+'\')" style="background:none;border:none;color:rgba(178,34,34,0.3);font-size:16px;cursor:pointer;padding:0 4px;flex-shrink:0;">×</button>'
-        +'</div>';
+      html+='<div style="display:flex;align-items:flex-start;gap:8px;padding:10px 0;border-bottom:1px solid var(--bdr);"><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:var(--fg);">'+e.desc+'</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">'+e.cat+' · '+e.date+'</div></div><div style="font-size:14px;font-weight:700;color:var(--rose);flex-shrink:0;">'+fmtK(parseFloat(e.amount||0))+'</div><button onclick="deleteExpense(\'' +e.id+ '\')" style="background:none;border:none;color:rgba(178,34,34,0.3);font-size:16px;cursor:pointer;padding:0 4px;">&#215;</button></div>';
     });
-    html+='<div style="display:flex;justify-content:space-between;padding:10px 0 4px;font-weight:700;font-size:13px;">'
-      +'<span style="color:var(--muted);">TOTAL</span>'
-      +'<span style="color:var(--rose);">'+fmtK(totalExp)+'</span></div>';
+    html+='<div style="display:flex;justify-content:space-between;padding:10px 0 4px;font-weight:700;font-size:13px;"><span style="color:var(--muted);">TOTAL</span><span style="color:var(--rose);">'+fmtK(totalExp)+'</span></div>';
   }
   html+='</div>';
-
   document.getElementById('pexpenses').innerHTML=html;
 }
 
@@ -295,8 +237,7 @@ function go(id,btn){
   document.querySelectorAll(".tab").forEach(function(t){t.classList.remove("on");});
   document.getElementById("p"+id).classList.add("on");
   btn.classList.add("on");ACTIVE=id;
-  if(id==="expenses") renderExpenses();
-  if(id==="overview") renderOverview();
+  if(id==="expenses")renderExpenses();
 }
 
 /* ── deal types ── */
@@ -338,10 +279,7 @@ var CFG={
 /* ── deals data ── */
 var DEALS=[];
 var EXPENSES=[];
-var EXP_CATS=['MLS & Board Fees','Marketing & Ads','Signs & Lockboxes','Office & Supplies',
-  'Fuel & Transportation','Phone & Internet','Software & Tools','Education & Training',
-  'Professional Fees','Gifts & Client Care','Staging & Photography','Other'];
-
+var EXP_CATS=["MLS & Board Fees","Marketing & Ads","Signs & Lockboxes","Office & Supplies","Fuel & Transportation","Phone & Internet","Software & Tools","Education & Training","Professional Fees","Gifts & Client Care","Staging & Photography","Other"];
 var DEAL_FILTER={year:"all",type:"all",builder:"all"};
 var DEAL_OPEN=false;
 var DEAL_EDITING=null;
@@ -436,7 +374,6 @@ function renderOverview(){
     +'<div class="stat"><div class="sn">'+total+'</div><div class="sl">Deals Closed</div></div>'
     +'<div class="stat"><div class="sn">'+fmtM(totalVol)+'</div><div class="sl">Total Volume</div></div>'
     +'<div class="stat"><div class="sn">'+fmtK(totalVera)+'</div><div class="sl">Total Income</div></div>'
-    +'<div class="stat"><div class="sn" style="color:'+(totalVera-expTotalAll()>=0?"'var(--green)':'var(--rose)')+'">'+fmtK(totalVera-expTotalAll())+'</div><div class="sl">Net After Expenses</div></div>'
     +'<div class="stat"><div class="sn">'+fmtK(totalGross)+'</div><div class="sl">Gross Comm.</div></div>'
     +'</div>';
 
